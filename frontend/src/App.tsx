@@ -106,17 +106,7 @@ export default function App() {
     fetchAllData();
   }, [selectedMonth, selectedYear]);
 
-  const handleSeedData = async () => {
-    if (!confirm('Bạn có chắc chắn muốn tải lại bộ dữ liệu mẫu 12 phòng An Cư Pro?')) return;
-    try {
-      const res = await fetch('/api/seed', { method: 'POST' });
-      const data = await res.json();
-      showToast(data.message || 'Đã nạp dữ liệu mẫu thành công!');
-      fetchAllData();
-    } catch (e) {
-      showToast('Lỗi khi nạp dữ liệu mẫu.');
-    }
-  };
+
 
   const handleGenerateInvoices = async () => {
     try {
@@ -261,14 +251,8 @@ export default function App() {
           </button>
         </nav>
 
-        <div className="p-4 border-t border-slate-800 space-y-2">
-          <button
-            onClick={handleSeedData}
-            className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs font-medium border border-slate-700 transition"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-indigo-400" /> Nạp dữ liệu mẫu
-          </button>
-          <div className="text-[11px] text-center text-slate-500 pt-1">
+        <div className="p-4 border-t border-slate-800">
+          <div className="text-[11px] text-center text-slate-500">
             COSS Vietnam © 2025 TroViet Pro
           </div>
         </div>
@@ -973,58 +957,3 @@ export default function App() {
 function MeterRow({ item, onSave }: { item: any; onSave: any }) {
   const [oldE, setOldE] = useState(item.old_electric || 0);
   const [newE, setNewE] = useState(item.new_electric || 0);
-  const [oldW, setOldW] = useState(item.old_water || 0);
-  const [newW, setNewW] = useState(item.new_water || 0);
-
-  const diffE = Math.max(0, newE - oldE);
-  const diffW = Math.max(0, newW - oldW);
-
-  return (
-    <tr className="hover:bg-slate-50/80 transition">
-      <td className="p-4 font-black text-indigo-700 text-sm">{item.room_number}</td>
-      <td className="p-4 font-semibold text-slate-800">{item.tenant_name || 'Phòng trống'}</td>
-      <td className="p-4 text-center">
-        <input
-          type="number"
-          value={oldE}
-          onChange={(e) => setOldE(Number(e.target.value))}
-          className="w-16 p-1 border rounded text-center text-xs font-mono"
-        />
-      </td>
-      <td className="p-4 text-center">
-        <input
-          type="number"
-          value={newE}
-          onChange={(e) => setNewE(Number(e.target.value))}
-          className="w-16 p-1 border rounded text-center text-xs font-mono font-bold text-amber-700"
-        />
-      </td>
-      <td className="p-4 text-center font-bold text-amber-700">{diffE} kWh</td>
-      <td className="p-4 text-center">
-        <input
-          type="number"
-          value={oldW}
-          onChange={(e) => setOldW(Number(e.target.value))}
-          className="w-16 p-1 border rounded text-center text-xs font-mono"
-        />
-      </td>
-      <td className="p-4 text-center">
-        <input
-          type="number"
-          value={newW}
-          onChange={(e) => setNewW(Number(e.target.value))}
-          className="w-16 p-1 border rounded text-center text-xs font-mono font-bold text-sky-700"
-        />
-      </td>
-      <td className="p-4 text-center font-bold text-sky-700">{diffW} m³</td>
-      <td className="p-4 text-right">
-        <button
-          onClick={() => onSave(item.room_id, oldE, newE, oldW, newW)}
-          className="bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 px-3 py-1 rounded-md font-bold transition text-xs"
-        >
-          Lưu
-        </button>
-      </td>
-    </tr>
-  );
-}
