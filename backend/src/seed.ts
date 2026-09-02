@@ -1,8 +1,8 @@
 import { db, initDB } from './db.js';
 import { generateVietQRUrl } from './vietqr.js';
 
-export function runSeed() {
-  initDB();
+export async function runSeed() {
+  await initDB();
 
   console.log('⚡ Clearing old data...');
   db.exec(`

@@ -1,11 +1,16 @@
 @echo off
-chcp 65001 >nul
-title Nap Du Lieu Mau - TroViet Pro
-echo ============================================================
-echo      DANG NAP BO DU LIEU MAU CHUNG CU MINI AN CU PRO (12 PHONG)
-echo ============================================================
-cd /d "%~dp0backend"
-call npm run seed
+cd /d "%~dp0"
+
+echo ==============================================================================
+echo    DANG NAP BO DU LIEU MAU CHUNG CU MINI AN CU PRO (12 PHONG)...
+echo ==============================================================================
 echo.
-echo [THANH CONG] Da nap xong 12 phong, 8 khach thue va hoa don VietQR!
+
+node backend/dist/seed.js
+
+echo.
+echo ==============================================================================
+echo    DA NAP XONG 12 PHONG, 8 KHACH THUE VA HOA DON VIETQR!
+echo ==============================================================================
+echo.
 pause
