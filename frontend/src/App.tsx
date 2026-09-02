@@ -414,7 +414,9 @@ export default function App() {
     }
   };
 
+  // -------------------------------------------------------------
   // PUBLIC TENANT SIGNING VIEW (MOBILE-OPTIMIZED)
+  // -------------------------------------------------------------
   if (publicSignToken && publicContractData) {
     const { contract, landlord } = publicContractData;
     return (
@@ -519,7 +521,9 @@ export default function App() {
     );
   }
 
+  // -------------------------------------------------------------
   // MAIN DASHBOARD (PREMIUM SIDEBAR LAYOUT)
+  // -------------------------------------------------------------
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-row font-sans">
       {/* Toast Alert */}
