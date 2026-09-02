@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -427,6 +428,245 @@ app.put('/api/invoices/:id/pay', (req: Request, res: Response) => {
   `).run(newPaidAmount, newStatus, nowStr, payment_method || 'Chuyển khoản VietQR', id);
 
   res.json({ success: true, status: newStatus, paid_amount: newPaidAmount });
+});
+
+
+// -------------------------------------------------------------
+// 7. E-CONTRACT DIGITAL SIGNING & ONLINE DEPOSIT ADD-ON
+// -------------------------------------------------------------
+app.get('/api/contracts', (req: Request, res: Response) => {
+  try {
+    const contracts = db.prepare(`
+      SELECT c.*, r.room_number, r.floor, r.area, b.name as building_name, b.address as building_address,
+             t.full_name as tenant_name, t.phone as tenant_phone, t.identity_card, t.hometown, t.license_plate
+      FROM contracts c
+      JOIN rooms r ON c.room_id = r.id
+      JOIN buildings b ON r.building_id = b.id
+      LEFT JOIN tenants t ON c.tenant_id = t.id
+      ORDER BY c.created_at DESC
+    `).all();
+    res.json(contracts);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/contracts/e-sign-create', (req: Request, res: Response) => {
+  try {
+    const {
+      room_id,
+      tenant_id,
+      full_name,
+      phone,
+      identity_card,
+      hometown,
+      license_plate,
+      start_date,
+      end_date,
+      monthly_rent,
+      deposit_amount,
+      terms,
+      landlord_signature
+    } = req.body;
+
+    if (!room_id) return res.status(400).json({ error: 'Missing room_id' });
+
+    let finalTenantId = tenant_id;
+    if (!finalTenantId && full_name && phone) {
+      const stmt = db.prepare(`
+        INSERT INTO tenants (room_id, full_name, phone, identity_card, hometown, license_plate, start_date, end_date, active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+      `);
+      const info = stmt.run(room_id, full_name, phone, identity_card || '', hometown || '', license_plate || '', start_date, end_date, 1);
+      finalTenantId = info.lastInsertRowid;
+    }
+
+    const token = crypto.randomBytes(16).toString('hex');
+    const contract_code = `HD${new Date().toISOString().slice(2, 10).replace(/-/g, '')}${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const room = db.prepare('SELECT r.*, b.bank_id, b.bank_account, b.bank_owner, b.address as building_address FROM rooms r JOIN buildings b ON r.building_id = b.id WHERE r.id = ?').get(room_id) as any;
+    const rentAmount = monthly_rent || room.base_price;
+    const depositAmount = deposit_amount !== undefined ? deposit_amount : room.deposit;
+
+    // Default landlord signature if not provided
+    const defaultLandlordSig = landlord_signature || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="60"><text x="10" y="40" font-family="cursive" font-size="28" fill="%232563eb">An Cu Pro</text></svg>';
+
+    const stmt = db.prepare(`
+      INSERT INTO contracts (
+        contract_code, token, room_id, tenant_id, start_date, end_date,
+        monthly_rent, deposit_amount, deposit_status, status,
+        landlord_signature, terms
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'sent', ?, ?)
+    `);
+
+    const result = stmt.run(
+      contract_code,
+      token,
+      room_id,
+      finalTenantId,
+      start_date || new Date().toISOString().slice(0, 10),
+      end_date || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      rentAmount,
+      depositAmount,
+      defaultLandlordSig,
+      terms || 'Các bên cam kết tuân thủ quy định PCCC, nội quy giờ giấc và thanh toán tiền phòng đúng hạn từ ngày 1 đến ngày 5 hàng tháng.'
+    );
+
+    res.json({
+      success: true,
+      contractId: result.lastInsertRowid,
+      contract_code,
+      token,
+      signUrl: `/sign-contract/${token}`
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Public Endpoint to view contract by token (No Auth required for tenant)
+app.get('/api/public/contract/:token', (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const contract = db.prepare(`
+      SELECT c.*, r.room_number, r.floor, r.area, r.electricity_rate, r.water_rate, r.wifi_fee, r.trash_fee, r.cleaning_fee, r.parking_fee,
+             b.name as building_name, b.address as building_address, b.bank_id, b.bank_account, b.bank_owner,
+             t.full_name as tenant_name, t.phone as tenant_phone, t.identity_card, t.hometown, t.license_plate
+      FROM contracts c
+      JOIN rooms r ON c.room_id = r.id
+      JOIN buildings b ON r.building_id = b.id
+      LEFT JOIN tenants t ON c.tenant_id = t.id
+      WHERE c.token = ?
+    `).get(token) as any;
+
+    if (!contract) {
+      return res.status(404).json({ error: 'Không tìm thấy hợp đồng hoặc liên kết đã hết hạn.' });
+    }
+
+    const landlordName = (db.prepare("SELECT value FROM settings WHERE key = 'landlord_name'").get() as any)?.value || 'Nguyễn Trung An';
+    const landlordPhone = (db.prepare("SELECT value FROM settings WHERE key = 'landlord_phone'").get() as any)?.value || '0988.123.456';
+    const landlordIdentity = (db.prepare("SELECT value FROM settings WHERE key = 'landlord_identity'").get() as any)?.value || '001095012345';
+    const landlordAddress = (db.prepare("SELECT value FROM settings WHERE key = 'landlord_address'").get() as any)?.value || contract.building_address;
+
+    res.json({
+      contract,
+      landlord: {
+        name: landlordName,
+        phone: landlordPhone,
+        identity: landlordIdentity,
+        address: landlordAddress
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Public Endpoint for Tenant to Sign and generate VietQR Deposit Code
+app.post('/api/public/contract/:token/sign', async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const { tenant_signature, pccc_agreed, rules_agreed, tenant_name, identity_card, hometown } = req.body;
+
+    if (!tenant_signature) {
+      return res.status(400).json({ error: 'Vui lòng ký tên vào khung chữ ký cảm ứng!' });
+    }
+
+    const contract = db.prepare(`
+      SELECT c.*, r.room_number, b.bank_id, b.bank_account, b.bank_owner, t.full_name, t.id as tenant_id
+      FROM contracts c
+      JOIN rooms r ON c.room_id = r.id
+      JOIN buildings b ON r.building_id = b.id
+      LEFT JOIN tenants t ON c.tenant_id = t.id
+      WHERE c.token = ?
+    `).get(token) as any;
+
+    if (!contract) {
+      return res.status(404).json({ error: 'Hợp đồng không tồn tại.' });
+    }
+
+    // Update tenant profile if provided
+    if (contract.tenant_id && (tenant_name || identity_card || hometown)) {
+      db.prepare(`
+        UPDATE tenants 
+        SET full_name = COALESCE(?, full_name),
+            identity_card = COALESCE(?, identity_card),
+            hometown = COALESCE(?, hometown)
+        WHERE id = ?
+      `).run(tenant_name, identity_card, hometown, contract.tenant_id);
+    }
+
+    // Generate VietQR for Deposit
+    const depositAmt = contract.deposit_amount || contract.monthly_rent;
+    const vietqrUrl = generateVietQRUrl(
+      contract.bank_id,
+      contract.bank_account,
+      contract.bank_owner,
+      depositAmt,
+      `COC PHONG ${contract.room_number} HD ${contract.contract_code}`
+    );
+
+    // Update Contract state to signed
+    db.prepare(`
+      UPDATE contracts
+      SET tenant_signature = ?,
+          signed_at = CURRENT_TIMESTAMP,
+          status = 'signed',
+          vietqr_url = ?,
+          pccc_agreed = ?,
+          rules_agreed = ?
+      WHERE token = ?
+    `).run(tenant_signature, vietqrUrl, pccc_agreed ? 1 : 0, rules_agreed ? 1 : 0, token);
+
+    // Send Telegram Notification to Landlord if configured
+    try {
+      const botToken = (db.prepare("SELECT value FROM settings WHERE key = 'telegram_bot_token'").get() as any)?.value;
+      const chatId = (db.prepare("SELECT value FROM settings WHERE key = 'telegram_chat_id'").get() as any)?.value;
+      if (botToken && chatId) {
+        const msg = `✍️ *[HỢP ĐỒNG ĐÃ ĐƯỢC KÝ ONLINE]*\n` +
+          `🏠 Phòng: *P.${contract.room_number}*\n` +
+          `👤 Khách thuê: *${tenant_name || contract.full_name}*\n` +
+          `💵 Tiền cọc giữ phòng: *${depositAmt.toLocaleString('vi-VN')} đ*\n` +
+          `📜 Mã HĐ: `${contract.contract_code}`\n` +
+          `⚡ Trạng thái: Đã ký số thành công, đang chờ khách quét mã VietQR nộp cọc.`;
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+        }).catch(() => {});
+      }
+    } catch {}
+
+    const updated = db.prepare('SELECT * FROM contracts WHERE token = ?').get(token);
+    res.json({
+      success: true,
+      message: 'Ký hợp đồng điện tử thành công! Vui lòng quét mã VietQR để hoàn tất đặt cọc.',
+      contract: updated,
+      vietqrUrl,
+      depositAmount: depositAmt
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint to mark deposit as confirmed and occupy room
+app.post('/api/contracts/:id/confirm-deposit', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const contract = db.prepare('SELECT * FROM contracts WHERE id = ?').get(id) as any;
+    if (!contract) return res.status(404).json({ error: 'Contract not found' });
+
+    db.prepare("UPDATE contracts SET deposit_status = 'paid', status = 'completed' WHERE id = ?").run(id);
+    db.prepare("UPDATE rooms SET status = 'occupied' WHERE id = ?").run(contract.room_id);
+    if (contract.tenant_id) {
+      db.prepare("UPDATE tenants SET active = 1, room_id = ? WHERE id = ?").run(contract.room_id, contract.tenant_id);
+    }
+
+    res.json({ success: true, message: 'Đã xác nhận tiền cọc và kích hoạt phòng thành công!' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // -------------------------------------------------------------

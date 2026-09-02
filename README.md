@@ -18,6 +18,7 @@ Hệ thống giúp chủ nhà trọ, quản lý tòa nhà tiết kiệm đến *
 | 📊 **Bảng điều khiển trực quan** | Theo dõi tỷ lệ lấp đầy phòng, doanh thu tháng, số tiền đã thu, công nợ chưa thu theo thời gian thực. |
 | 🏢 **Sơ đồ phòng ma trận trực quan** | Hiển thị màu sắc trạng thái (Xanh: Đang thuê, Xám: Trống, Vàng: Bảo trì). Quản lý giá phòng, tiền cọc, tầng. |
 | 👥 **Quản lý Khách thuê & Hợp đồng** | Quản lý họ tên, số điện thoại, CCCD/CMND, quê quán, biển số xe, số người ở. In mẫu hợp đồng chuẩn pháp lý A4 1-Click. |
+| ✍️ **Ký Hợp Đồng Điện Tử (E-Sign Add-on)** | Gửi link qua Zalo cho khách ở xa ký cảm ứng bằng ngón tay trên điện thoại, tự động sinh mã VietQR nộp cọc giữ phòng tức thì. |
 | ⚡ **Chốt Điện & Nước Tự Động** | Nhập số cũ và số mới, tự động tính số KWh điện và m³ nước tiêu thụ, đối soát với tháng trước. |
 | 💳 **Tích hợp VietQR Napas 247** | Tự động tạo mã QR động cho từng phòng, quét mã trên App ngân hàng tự điền đúng số tiền và nội dung chuyển khoản (VD: `P101 TIEN NHA T05`). |
 | 🖨️ **In Phiếu Thu POS 80mm** | Hỗ trợ in nhiệt tiêu chuẩn POS 80mm ngay tại quầy hoặc xuất hóa đơn PDF. |
