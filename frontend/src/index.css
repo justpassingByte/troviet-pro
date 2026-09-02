@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .pos-receipt {
+    width: 80mm;
+    max-width: 80mm;
+    font-family: 'Courier New', Courier, monospace;
+  }
+}
+
+@media print {
+  @page {
+    margin: 5mm;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #printable-area, #printable-area * {
+    visibility: visible;
+  }
+  #printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

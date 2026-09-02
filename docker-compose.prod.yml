@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  troviet-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: troviet-pro-backend
+    restart: always
+    ports:
+      - "4000:4000"
+    volumes:
+      - /var/lib/troviet/data:/app/data
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
