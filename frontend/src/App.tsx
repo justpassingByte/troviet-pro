@@ -19,7 +19,8 @@ import {
   Copy,
   ExternalLink,
   Flame,
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 import { SignaturePad } from './SignaturePad';
 import { MeterRow } from './MeterRow';
@@ -161,7 +162,6 @@ export default function App() {
     }
   };
 
-  // Add Building Submit
   const handleAddBuildingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -193,7 +193,6 @@ export default function App() {
     }
   };
 
-  // Add Room Submit
   const handleAddRoomSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -227,7 +226,6 @@ export default function App() {
     }
   };
 
-  // Add Tenant Submit
   const handleAddTenantSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -417,44 +415,46 @@ export default function App() {
     }
   };
 
-  // PUBLIC TENANT SIGNING VIEW
+  // -------------------------------------------------------------
+  // PUBLIC TENANT SIGNING VIEW (MOBILE-OPTIMIZED)
+  // -------------------------------------------------------------
   if (publicSignToken && publicContractData) {
     const { contract, landlord } = publicContractData;
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 py-8 px-4 flex items-center justify-center">
-        <div className="max-w-2xl w-full bg-white text-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
-          <div className="text-center border-b pb-4">
-            <span className="bg-indigo-100 text-indigo-800 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider">
+      <div className="min-h-screen bg-[#090d16] text-slate-100 py-10 px-4 flex items-center justify-center">
+        <div className="max-w-2xl w-full bg-[#111726] text-slate-100 rounded-3xl p-6 md:p-8 shadow-2xl border border-white/10 space-y-6">
+          <div className="text-center border-b border-white/10 pb-4">
+            <span className="bg-indigo-500/10 text-indigo-400 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider border border-indigo-500/20">
               Hợp Đồng Thuê Nhà Điện Tử · E-Sign Online
             </span>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 mt-2">
-              KÝ HỢP ĐỒNG THUÊ PHÒNG P.{contract.room_number}
+            <h1 className="text-xl md:text-2xl font-black text-white mt-2">
+              Ký Hợp Đồng Thuê Phòng P.{contract.room_number}
             </h1>
-            <p className="text-xs text-slate-500 mt-1">{contract.building_name} — {contract.building_address}</p>
+            <p className="text-xs text-slate-400 mt-1">{contract.building_name} — {contract.building_address}</p>
           </div>
 
           {publicSignSuccess ? (
             <div className="text-center py-6 space-y-5">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <div className="w-16 h-16 bg-emerald-500/15 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-slate-900">Ký Hợp Đồng Thành Công!</h2>
-                <p className="text-xs text-slate-600 mt-1">
-                  Chữ ký số của bạn đã được ghi nhận vào Hợp đồng số <strong>#{contract.contract_code}</strong>.
+                <h2 className="text-xl font-black text-white">Ký Hợp Đồng Thành Công!</h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  Chữ ký số của bạn đã được lưu vào Hợp đồng số <strong>#{contract.contract_code}</strong>.
                 </p>
               </div>
 
-              <div className="bg-indigo-50/80 border-2 border-dashed border-indigo-300 rounded-3xl p-6 max-w-sm mx-auto space-y-3">
-                <div className="flex items-center justify-center gap-1.5 text-indigo-700 font-bold text-xs uppercase">
+              <div className="bg-[#151d30] border-2 border-dashed border-indigo-500/40 rounded-3xl p-6 max-w-sm mx-auto space-y-3">
+                <div className="flex items-center justify-center gap-1.5 text-indigo-400 font-bold text-xs uppercase">
                   <QrCode className="w-4 h-4" /> Quét mã VietQR nộp tiền cọc giữ phòng
                 </div>
                 <div className="bg-white p-3 rounded-2xl shadow-sm inline-block">
                   <img src={publicSignSuccess.vietqrUrl} alt="VietQR Deposit" className="w-64 h-64 mx-auto rounded-xl" />
                 </div>
-                <div className="text-xs text-slate-700 space-y-1">
-                  <p>Số tiền cọc: <strong className="text-base text-indigo-700 font-black">{formatVND(publicSignSuccess.depositAmount)}</strong></p>
-                  <p className="text-[11px] font-mono text-slate-500 bg-white/80 p-1.5 rounded">
+                <div className="text-xs text-slate-300 space-y-1">
+                  <p>Số tiền cọc: <strong className="text-base text-indigo-400 font-black">{formatVND(publicSignSuccess.depositAmount)}</strong></p>
+                  <p className="text-[11px] font-mono text-slate-400 bg-black/30 p-2 rounded-xl">
                     STK: <strong>{contract.bank_account}</strong> ({contract.bank_id}) - {contract.bank_owner}
                   </p>
                 </div>
@@ -462,46 +462,46 @@ export default function App() {
 
               <button
                 onClick={() => window.print()}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition inline-flex items-center gap-2"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition inline-flex items-center gap-2"
               >
                 <Printer className="w-4 h-4" /> In / Lưu Hợp Đồng PDF
               </button>
             </div>
           ) : (
-            <div className="space-y-5 text-xs text-slate-700">
-              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2.5">
+            <div className="space-y-5 text-xs text-slate-300">
+              <div className="bg-[#151d30] rounded-2xl p-4 border border-white/10 space-y-2.5">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <span className="text-slate-400 font-medium">Bên cho thuê (Chủ nhà):</span>
-                    <p className="font-bold text-slate-900">{landlord.name} ({landlord.phone})</p>
+                    <p className="font-bold text-white text-sm">{landlord.name} ({landlord.phone})</p>
                   </div>
                   <div>
                     <span className="text-slate-400 font-medium">Khách thuê phòng:</span>
-                    <p className="font-bold text-slate-900">{contract.tenant_name || 'Khách thuê'} ({contract.tenant_phone})</p>
+                    <p className="font-bold text-white text-sm">{contract.tenant_name || 'Khách thuê'} ({contract.tenant_phone})</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
                   <div>
                     <span className="text-slate-400 font-medium">Giá thuê phòng:</span>
-                    <p className="font-extrabold text-indigo-700 text-sm">{formatVND(contract.monthly_rent)}/tháng</p>
+                    <p className="font-extrabold text-indigo-400 text-sm">{formatVND(contract.monthly_rent)}/tháng</p>
                   </div>
                   <div>
                     <span className="text-slate-400 font-medium">Tiền đặt cọc giữ chỗ:</span>
-                    <p className="font-extrabold text-amber-700 text-sm">{formatVND(contract.deposit_amount)}</p>
+                    <p className="font-extrabold text-amber-400 text-sm">{formatVND(contract.deposit_amount)}</p>
                   </div>
                 </div>
 
-                <div className="text-[11px] text-slate-500 pt-1">
+                <div className="text-[11px] text-slate-400 pt-1">
                   Thời hạn thuê: Từ <strong>{contract.start_date}</strong> đến <strong>{contract.end_date}</strong>.
                 </div>
               </div>
 
-              <div className="space-y-2 bg-amber-50/60 p-4 rounded-2xl border border-amber-200/80">
-                <h4 className="font-bold text-amber-900 flex items-center gap-1.5">
-                  <Flame className="w-4 h-4 text-rose-600" /> Cam Kết PCCC & Nội Quy Phòng Trọ
+              <div className="space-y-2 bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">
+                <h4 className="font-bold text-amber-400 flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-rose-500" /> Cam Kết PCCC & Nội Quy Phòng Trọ
                 </h4>
-                <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11px]">
+                <ul className="list-disc pl-4 space-y-1 text-slate-300 text-[11px]">
                   <li>Tuyệt đối không sạc xe điện qua đêm tại khu vực hành lang chung.</li>
                   <li>Không tàng trữ chất dễ cháy nổ, bình gas công nghiệp trong phòng.</li>
                   <li>Thanh toán tiền phòng đúng hạn từ ngày 01 đến ngày 05 hàng tháng qua VietQR.</li>
@@ -522,272 +522,345 @@ export default function App() {
     );
   }
 
-  // MAIN DASHBOARD VIEW
+  // -------------------------------------------------------------
+  // MAIN DASHBOARD (PREMIUM SIDEBAR LAYOUT - HUBSPOT / STRIPE STYLE)
+  // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-row font-sans">
+      
+      {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-indigo-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-bounce">
+        <div className="fixed top-4 right-4 z-50 bg-indigo-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-bounce border border-white/20">
           <CheckCircle2 className="w-4 h-4" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      <header className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-600/30">
+      {/* LEFT SIDEBAR (STICKY FIXED 260PX) */}
+      <aside className="w-64 bg-[#111726] border-r border-white/10 flex flex-col justify-between h-screen sticky top-0 shrink-0 select-none">
+        
+        <div className="p-5 space-y-6">
+          {/* Logo Brand Header */}
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-600/30 border border-white/15">
               TV
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 leading-none">
                 <span className="font-extrabold text-base tracking-tight text-white">TroViet</span>
-                <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md uppercase">PRO</span>
+                <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase">PRO</span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium">Quản Lý Nhà Trọ & Ký Hợp Đồng VietQR</p>
+              <p className="text-[10px] text-slate-400 mt-1">Quản Lý Nhà Trọ 4.0</p>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Home className="w-3.5 h-3.5" /> Tổng quan
-            </button>
-            <button
-              onClick={() => setActiveTab('rooms')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                activeTab === 'rooms' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Building2 className="w-3.5 h-3.5" /> Phòng trọ
-            </button>
-            <button
-              onClick={() => setActiveTab('tenants')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                activeTab === 'tenants' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" /> Khách thuê
-            </button>
-            <button
-              onClick={() => setActiveTab('meters')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                activeTab === 'meters' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5" /> Chốt Điện Nước
-            </button>
-            <button
-              onClick={() => setActiveTab('invoices')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                activeTab === 'invoices' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Receipt className="w-3.5 h-3.5" /> Hóa đơn VietQR
-            </button>
-            <button
-              onClick={() => setActiveTab('contracts')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                activeTab === 'contracts' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" /> Hợp Đồng Điện Tử
-            </button>
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Settings className="w-3.5 h-3.5" /> Cài đặt
-            </button>
-          </nav>
-
-          {/* Building & Month Selector */}
-          <div className="flex items-center gap-2">
-            {buildings.length > 0 && (
+          {/* Building Switcher Card */}
+          <div className="bg-[#151d30] p-3 rounded-2xl border border-white/10 space-y-2">
+            <div className="flex justify-between items-center text-[11px] text-slate-400 font-semibold">
+              <span>TÒA NHÀ ĐANG QUẢN LÝ</span>
+              <button
+                onClick={() => setShowAddBuildingModal(true)}
+                className="text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-0.5"
+                title="Thêm tòa nhà / dãy trọ mới"
+              >
+                <Plus className="w-3.5 h-3.5" /> Thêm
+              </button>
+            </div>
+            
+            {buildings.length > 0 ? (
               <select
                 value={selectedBuildingId}
                 onChange={(e) => setSelectedBuildingId(Number(e.target.value))}
-                className="bg-slate-800 border border-slate-700 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 outline-none max-w-[150px] truncate"
+                className="w-full bg-[#0b101c] border border-white/10 text-white text-xs font-bold rounded-xl p-2 outline-none cursor-pointer"
               >
                 {buildings.map(b => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
               </select>
+            ) : (
+              <button
+                onClick={() => setShowAddBuildingModal(true)}
+                className="w-full bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 rounded-xl p-2 text-xs font-bold flex items-center justify-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Tạo Tòa Nhà Đầu Tiên
+              </button>
             )}
+          </div>
 
+          {/* Vertical Menu Navigation */}
+          <nav className="space-y-1 text-xs font-semibold">
             <button
-              onClick={() => setShowAddBuildingModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white p-1.5 rounded-lg text-xs font-bold transition shadow"
-              title="Thêm Tòa Nhà / Dãy Trọ Mới"
+              onClick={() => setActiveTab('dashboard')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Home className="w-4 h-4" /> Tổng quan
             </button>
-
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              className="bg-slate-800 border border-slate-700 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 outline-none"
+            <button
+              onClick={() => setActiveTab('rooms')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                activeTab === 'rooms' ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
             >
-              {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                <option key={m} value={m}>Tháng {m}/{selectedYear}</option>
-              ))}
-            </select>
+              <Building2 className="w-4 h-4" /> Danh sách phòng
+            </button>
+            <button
+              onClick={() => setActiveTab('tenants')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                activeTab === 'tenants' ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Users className="w-4 h-4" /> Khách thuê
+            </button>
+            <button
+              onClick={() => setActiveTab('meters')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                activeTab === 'meters' ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Zap className="w-4 h-4 text-amber-400" /> Chốt điện & nước
+            </button>
+            <button
+              onClick={() => setActiveTab('invoices')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                activeTab === 'invoices' ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Receipt className="w-4 h-4 text-emerald-400" /> Hóa đơn VietQR
+            </button>
+            <button
+              onClick={() => setActiveTab('contracts')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                activeTab === 'contracts' ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <FileText className="w-4 h-4 text-indigo-400" /> Hợp đồng điện tử
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Settings className="w-4 h-4" /> Cài đặt & Tích hợp
+            </button>
+          </nav>
+        </div>
+
+        {/* Sidebar Footer */}
+        <div className="p-5 border-t border-white/10 space-y-3">
+          <button
+            onClick={handleSeedData}
+            className="w-full bg-[#151d30] hover:bg-white/10 text-slate-300 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border border-white/10 transition"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-indigo-400" /> Nạp dữ liệu mẫu
+          </button>
+          <div className="text-[10px] text-center text-slate-500">
+            COSS Vietnam · TroViet Pro v1.0
           </div>
         </div>
-      </header>
+      </aside>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
-        {/* TAB 1: DASHBOARD */}
-        {activeTab === 'dashboard' && stats && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-2">
-                <div className="flex justify-between items-center text-slate-400 text-xs font-semibold">
-                  <span>Tỷ Lệ Lấp Đầy</span>
-                  <Building2 className="w-4 h-4 text-indigo-400" />
+      {/* RIGHT MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        
+        {/* Top Header Bar */}
+        <header className="h-[70px] bg-[#090d16]/80 backdrop-blur-xl border-b border-white/10 px-8 flex items-center justify-between sticky top-0 z-30">
+          <div>
+            <h2 className="text-base font-extrabold text-white">
+              {activeTab === 'dashboard' && 'Bảng Điều Khiển Kinh Doanh'}
+              {activeTab === 'rooms' && 'Quản Lý Sơ Đồ & Danh Sách Phòng'}
+              {activeTab === 'tenants' && 'Quản Lý Hồ Sơ Khách Thuê'}
+              {activeTab === 'meters' && 'Chốt Chỉ Số Điện (kWh) & Nước (m³)'}
+              {activeTab === 'invoices' && 'Hóa Đơn Tiền Nhà & Thu Tiền VietQR'}
+              {activeTab === 'contracts' && 'Hợp Đồng Thuê Nhà & Ký Số E-Sign'}
+              {activeTab === 'settings' && 'Cấu Hình Chủ Nhà & Tích Hợp Bot'}
+            </h2>
+            <p className="text-xs text-slate-400">
+              {buildings.find(b => b.id === selectedBuildingId)?.name || 'Chung Cư Mini An Cư Pro'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Month/Year Pill Selector */}
+            <div className="flex items-center bg-[#151d30] border border-white/10 rounded-xl px-3 py-1.5 text-xs">
+              <span className="text-slate-400 mr-2 font-medium">Kỳ thu:</span>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="bg-transparent text-indigo-400 font-bold outline-none cursor-pointer pr-1"
+              >
+                {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                  <option key={m} value={m} className="bg-slate-900 text-white">Tháng {m}</option>
+                ))}
+              </select>
+              <span className="text-slate-400 font-bold">/{selectedYear}</span>
+            </div>
+
+            {/* Dynamic Action Buttons */}
+            {activeTab === 'rooms' && (
+              <button
+                onClick={() => setShowAddRoomModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition"
+              >
+                <Plus className="w-4 h-4" /> Thêm Phòng
+              </button>
+            )}
+
+            {activeTab === 'tenants' && (
+              <button
+                onClick={() => setShowAddTenantModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition"
+              >
+                <Plus className="w-4 h-4" /> Thêm Khách
+              </button>
+            )}
+
+            {activeTab === 'contracts' && (
+              <button
+                onClick={() => setShowCreateContractModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition"
+              >
+                <Plus className="w-4 h-4" /> Tạo Hợp Đồng Ký Zalo
+              </button>
+            )}
+
+            {activeTab === 'invoices' && (
+              <button
+                onClick={handleGenerateInvoices}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition"
+              >
+                <Zap className="w-4 h-4" /> Tính Tiền & Sinh Hóa Đơn
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* Content Body */}
+        <div className="p-8 space-y-6 flex-1 max-w-7xl w-full">
+          
+          {/* TAB 1: DASHBOARD */}
+          {activeTab === 'dashboard' && stats && (
+            <div className="space-y-6">
+              {/* Stat Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-[#111726] border border-white/10 rounded-3xl p-5 space-y-2 hover:border-indigo-500/40 transition">
+                  <div className="flex justify-between items-center text-slate-400 text-xs font-semibold">
+                    <span>Tỷ Lệ Lấp Đầy</span>
+                    <Building2 className="w-4 h-4 text-indigo-400" />
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-white">{stats.rooms.occupancyRate}%</span>
+                    <span className="text-xs text-slate-400">({stats.rooms.occupied}/{stats.rooms.total} phòng)</span>
+                  </div>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-white">{stats.rooms.occupancyRate}%</span>
-                  <span className="text-xs text-slate-400">({stats.rooms.occupied}/{stats.rooms.total} phòng)</span>
+
+                <div className="bg-[#111726] border border-white/10 rounded-3xl p-5 space-y-2 hover:border-emerald-500/40 transition">
+                  <div className="flex justify-between items-center text-slate-400 text-xs font-semibold">
+                    <span>Dự Kiến Thu Tháng {selectedMonth}</span>
+                    <DollarSign className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div className="text-2xl font-black text-emerald-400">
+                    {formatVND(stats.financials.totalExpected)}
+                  </div>
+                </div>
+
+                <div className="bg-[#111726] border border-white/10 rounded-3xl p-5 space-y-2 hover:border-rose-500/40 transition">
+                  <div className="flex justify-between items-center text-slate-400 text-xs font-semibold">
+                    <span>Tiền Trọ Chưa Thu</span>
+                    <AlertCircle className="w-4 h-4 text-rose-400" />
+                  </div>
+                  <div className="text-2xl font-black text-rose-400">
+                    {formatVND(stats.financials.totalUnpaid)}
+                  </div>
+                </div>
+
+                <div className="bg-[#111726] border border-white/10 rounded-3xl p-5 space-y-2 hover:border-amber-500/40 transition">
+                  <div className="flex justify-between items-center text-slate-400 text-xs font-semibold">
+                    <span>Hợp Đồng Điện Tử</span>
+                    <PenTool className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-white">{contracts.length}</span>
+                    <span className="text-xs text-amber-400">({contracts.filter(c => c.status === 'signed').length} đã ký)</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-2">
-                <div className="flex justify-between items-center text-slate-400 text-xs font-semibold">
-                  <span>Tổng Thu Dự Kiến</span>
-                  <DollarSign className="w-4 h-4 text-emerald-400" />
+              {/* Room Grid Matrix */}
+              <div className="bg-[#111726] border border-white/10 rounded-3xl p-6 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-indigo-400" /> Sơ Đồ Phòng Trực Quan
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab('contracts')}
+                    className="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1"
+                  >
+                    Xem Hợp Đồng Ký Online <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <div className="text-xl font-black text-emerald-400">
-                  {formatVND(stats.financials.totalExpected)}
-                </div>
-              </div>
 
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-2">
-                <div className="flex justify-between items-center text-slate-400 text-xs font-semibold">
-                  <span>Tiền Trọ Chưa Thu</span>
-                  <AlertCircle className="w-4 h-4 text-rose-400" />
-                </div>
-                <div className="text-xl font-black text-rose-400">
-                  {formatVND(stats.financials.totalUnpaid)}
-                </div>
-              </div>
-
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-2">
-                <div className="flex justify-between items-center text-slate-400 text-xs font-semibold">
-                  <span>Hợp Đồng Điện Tử</span>
-                  <PenTool className="w-4 h-4 text-amber-400" />
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-white">{contracts.length}</span>
-                  <span className="text-xs text-amber-400">({contracts.filter(c => c.status === 'signed').length} đã ký)</span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {rooms.map((r) => (
+                    <div
+                      key={r.id}
+                      className={`p-4 rounded-2xl border transition text-center space-y-1.5 ${
+                        r.status === 'occupied'
+                          ? 'bg-[#151d30] border-white/10 text-slate-200'
+                          : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                      }`}
+                    >
+                      <div className="font-black text-base">{r.room_number}</div>
+                      <div className="text-[11px] truncate font-medium text-slate-400">{r.tenant_name || 'Phòng trống'}</div>
+                      <div className="text-xs font-bold text-indigo-400">{formatVND(r.base_price)}</div>
+                      <span className={`inline-block text-[9px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                        r.status === 'occupied' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-emerald-500/20 text-emerald-300'
+                      }`}>
+                        {r.status === 'occupied' ? 'Đang ở' : 'Trống'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
+          )}
 
-            <div className="bg-slate-800/60 border border-slate-700/60 rounded-3xl p-6 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-indigo-400" /> Sơ Đồ Phòng Trực Quan (Chung Cư Mini An Cư Pro)
-                </h3>
-                <button
-                  onClick={() => setActiveTab('contracts')}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1"
-                >
-                  Xem Hợp Đồng Ký Online <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {rooms.map((r) => (
-                  <div
-                    key={r.id}
-                    className={`p-3.5 rounded-2xl border transition text-center space-y-1.5 ${
-                      r.status === 'occupied'
-                        ? 'bg-slate-800/90 border-slate-700 text-slate-200'
-                        : 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-                    }`}
-                  >
-                    <div className="font-black text-sm">{r.room_number}</div>
-                    <div className="text-[10px] truncate font-medium text-slate-400">{r.tenant_name || 'Phòng trống'}</div>
-                    <div className="text-[11px] font-bold text-indigo-400">{formatVND(r.base_price)}</div>
-                    <span className={`inline-block text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                      r.status === 'occupied' ? 'bg-indigo-900/60 text-indigo-300' : 'bg-emerald-900/60 text-emerald-300'
-                    }`}>
-                      {r.status === 'occupied' ? 'Đang ở' : 'Trống'}
-                    </span>
+          {/* TAB 2: ROOMS */}
+          {activeTab === 'rooms' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {rooms.map(r => (
+                  <div key={r.id} className="bg-[#111726] border border-white/10 rounded-3xl p-5 space-y-3 hover:border-white/20 transition">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-black text-lg text-white">Phòng {r.room_number}</span>
+                        <p className="text-xs text-slate-400">Tầng {r.floor} • {r.area} m²</p>
+                      </div>
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase ${
+                        r.status === 'occupied' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-emerald-500/20 text-emerald-300'
+                      }`}>
+                        {r.status === 'occupied' ? 'Đang Thuê' : 'Trống'}
+                      </span>
+                    </div>
+                    <div className="text-xs space-y-1 text-slate-300 bg-[#151d30] p-3 rounded-2xl border border-white/5">
+                      <p>Giá thuê: <strong className="text-indigo-400">{formatVND(r.base_price)}/tháng</strong></p>
+                      <p>Tiền cọc: <strong>{formatVND(r.deposit)}</strong></p>
+                      <p>Khách thuê: <strong>{r.tenant_name || 'Chưa có'}</strong></p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* TAB 2: ROOMS */}
-        {activeTab === 'rooms' && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
-              <div>
-                <h3 className="font-bold text-sm text-white">Quản Lý Danh Sách Phòng Trọ</h3>
-                <p className="text-xs text-slate-400">Xem và quản lý bảng giá, tiền cọc và diện tích từng phòng.</p>
-              </div>
-              <button
-                onClick={() => setShowAddRoomModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition"
-              >
-                <Plus className="w-4 h-4" /> + Thêm Phòng Mới
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {rooms.map(r => (
-                <div key={r.id} className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="font-black text-lg text-white">Phòng {r.room_number}</span>
-                      <p className="text-xs text-slate-400">Tầng {r.floor} • {r.area} m²</p>
-                    </div>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase ${
-                      r.status === 'occupied' ? 'bg-indigo-900/60 text-indigo-300' : 'bg-emerald-900/60 text-emerald-300'
-                    }`}>
-                      {r.status === 'occupied' ? 'Đang Thuê' : 'Trống'}
-                    </span>
-                  </div>
-                  <div className="text-xs space-y-1 text-slate-300">
-                    <p>Giá thuê: <strong className="text-indigo-400">{formatVND(r.base_price)}/th</strong></p>
-                    <p>Tiền cọc: <strong>{formatVND(r.deposit)}</strong></p>
-                    <p>Khách thuê: <strong>{r.tenant_name || 'Chưa có'}</strong></p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: TENANTS */}
-        {activeTab === 'tenants' && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
-              <div>
-                <h3 className="font-bold text-sm text-white">Danh Sách Khách Thuê Phòng</h3>
-                <p className="text-xs text-slate-400">Quản lý hồ sơ CCCD, số điện thoại Zalo và biển số xe.</p>
-              </div>
-              <button
-                onClick={() => setShowAddTenantModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition"
-              >
-                <Plus className="w-4 h-4" /> + Thêm Khách Thuê Mới
-              </button>
-            </div>
-
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-sm">
+          {/* TAB 3: TENANTS */}
+          {activeTab === 'tenants' && (
+            <div className="bg-[#111726] border border-white/10 rounded-3xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase border-b border-slate-700">
+                  <thead className="bg-[#151d30] text-slate-400 font-bold uppercase border-b border-white/10">
                     <tr>
                       <th className="p-4">Phòng</th>
                       <th className="p-4">Họ và tên</th>
@@ -798,9 +871,9 @@ export default function App() {
                       <th className="p-4">Ngày bắt đầu</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-700/60">
+                  <tbody className="divide-y divide-white/5">
                     {tenants.map(t => (
-                      <tr key={t.id} className="hover:bg-slate-700/30 transition">
+                      <tr key={t.id} className="hover:bg-white/5 transition">
                         <td className="p-4 font-black text-indigo-400">{t.room_number}</td>
                         <td className="p-4 font-bold text-white">{t.full_name}</td>
                         <td className="p-4">{t.phone}</td>
@@ -814,281 +887,251 @@ export default function App() {
                 </table>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* TAB 4: METERS */}
-        {activeTab === 'meters' && (
-          <div className="space-y-4">
-            <div className="bg-amber-950/30 border border-amber-500/40 p-4 rounded-2xl flex justify-between items-center text-xs text-amber-200">
-              <span>Chốt chỉ số Điện (kWh) và Nước (m³) tháng <strong>{selectedMonth}/{selectedYear}</strong>. Nhập số mới, hệ thống tự tính số tiêu thụ.</span>
-              <button
-                onClick={handleGenerateInvoices}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition"
-              >
-                ⚡ Đồng bộ sang Hóa đơn VietQR
-              </button>
-            </div>
-
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase border-b border-slate-700">
-                    <tr>
-                      <th className="p-4">Phòng</th>
-                      <th className="p-4">Khách thuê</th>
-                      <th className="p-4 text-center">Điện Cũ</th>
-                      <th className="p-4 text-center">Điện Mới</th>
-                      <th className="p-4 text-center">Tiêu Thụ (kWh)</th>
-                      <th className="p-4 text-center">Nước Cũ</th>
-                      <th className="p-4 text-center">Nước Mới</th>
-                      <th className="p-4 text-center">Tiêu Thụ (m³)</th>
-                      <th className="p-4 text-right">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-700/60">
-                    {meters.map(m => (
-                      <MeterRow key={m.room_id} item={m} onSave={handleSaveMeter} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 5: INVOICES & VIETQR */}
-        {activeTab === 'invoices' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {invoices.map(inv => (
-              <div key={inv.id} className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-4 shadow-sm hover:border-slate-600 transition">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="font-black text-lg text-white">Phòng {inv.room_number}</span>
-                    <p className="text-[11px] font-mono text-slate-400">Mã: {inv.invoice_code}</p>
-                  </div>
-                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase ${
-                    inv.status === 'paid' ? 'bg-emerald-900/60 text-emerald-300' : 'bg-rose-900/60 text-rose-300'
-                  }`}>
-                    {inv.status === 'paid' ? 'Đã Thu' : 'Chưa Thu'}
-                  </span>
-                </div>
-
-                <div className="space-y-1.5 text-xs text-slate-300 bg-slate-900/50 p-3 rounded-2xl border border-slate-800">
-                  <div className="flex justify-between text-slate-400">
-                    <span>Tiền phòng:</span>
-                    <span className="font-semibold text-white">{formatVND(inv.room_fee)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Điện ({inv.electric_usage} kWh):</span>
-                    <span className="font-semibold text-white">{formatVND(inv.electric_fee)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Nước ({inv.water_usage} m³):</span>
-                    <span className="font-semibold text-white">{formatVND(inv.water_fee)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Dịch vụ khác:</span>
-                    <span className="font-semibold text-white">{formatVND(inv.wifi_fee + inv.trash_fee + inv.parking_fee)}</span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-slate-700/60 text-sm font-black text-indigo-400">
-                    <span>TỔNG CỘNG:</span>
-                    <span>{formatVND(inv.total_amount)}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-700/60">
-                  <button
-                    onClick={() => setShowInvoiceModal(inv)}
-                    className="flex items-center justify-center gap-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 py-2 rounded-xl text-xs font-bold border border-indigo-500/30 transition"
-                  >
-                    <QrCode className="w-3.5 h-3.5" /> VietQR
-                  </button>
-                  <button
-                    onClick={() => setShowPosReceiptModal(inv)}
-                    className="flex items-center justify-center gap-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-xl text-xs font-bold transition"
-                  >
-                    <Printer className="w-3.5 h-3.5" /> In POS
-                  </button>
-                  <button
-                    onClick={() => handleSendTelegram(inv.id)}
-                    className="flex items-center justify-center gap-1 bg-sky-950/50 hover:bg-sky-900/60 text-sky-300 py-2 rounded-xl text-xs font-bold border border-sky-500/30 transition"
-                  >
-                    <Send className="w-3.5 h-3.5" /> Nhắc Nợ
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* TAB 6: E-CONTRACT DIGITAL SIGNING */}
-        {activeTab === 'contracts' && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/80 border border-slate-700/80 p-5 rounded-3xl">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-black text-white">Quản Lý Hợp Đồng Thuê Nhà & Ký Điện Tử (E-Sign)</h3>
-                  <span className="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Add-on Pro
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 mt-1">
-                  Gửi link qua Zalo cho khách ký cảm ứng trên điện thoại và tự động sinh mã VietQR nộp cọc giữ phòng.
-                </p>
-              </div>
-
-              <div className="flex gap-2">
+          {/* TAB 4: METERS */}
+          {activeTab === 'meters' && (
+            <div className="space-y-4">
+              <div className="bg-amber-500/10 border border-amber-500/30 p-5 rounded-3xl flex justify-between items-center text-xs text-amber-200">
+                <span>Chốt chỉ số Điện (kWh) và Nước (m³) tháng <strong>{selectedMonth}/{selectedYear}</strong>. Nhập số mới, hệ thống tự động tính số tiêu thụ.</span>
                 <button
-                  onClick={() => setShowCreateContractModal(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-600/30 transition"
+                  onClick={handleGenerateInvoices}
+                  className="bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition"
                 >
-                  <Plus className="w-4 h-4" /> + Tạo Hợp Đồng & Lấy Link Ký
+                  <Zap className="w-3.5 h-3.5 inline mr-1" /> Đồng bộ sang Hóa đơn VietQR
                 </button>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {contracts.length === 0 ? (
-                <div className="col-span-full py-12 text-center text-slate-500 text-xs bg-slate-800/40 rounded-3xl border border-slate-700/40">
-                  Chưa có hợp đồng điện tử nào. Hãy bấm "+ Tạo Hợp Đồng & Lấy Link Ký" ở trên.
+              <div className="bg-[#111726] border border-white/10 rounded-3xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-300">
+                    <thead className="bg-[#151d30] text-slate-400 font-bold uppercase border-b border-white/10">
+                      <tr>
+                        <th className="p-4">Phòng</th>
+                        <th className="p-4">Khách thuê</th>
+                        <th className="p-4 text-center">Điện Cũ</th>
+                        <th className="p-4 text-center">Điện Mới</th>
+                        <th className="p-4 text-center">Tiêu Thụ (kWh)</th>
+                        <th className="p-4 text-center">Nước Cũ</th>
+                        <th className="p-4 text-center">Nước Mới</th>
+                        <th className="p-4 text-center">Tiêu Thụ (m³)</th>
+                        <th className="p-4 text-right">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {meters.map(m => (
+                        <MeterRow key={m.room_id} item={m} onSave={handleSaveMeter} />
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ) : (
-                contracts.map((c) => (
-                  <div key={c.id} className="bg-slate-800/90 border border-slate-700/90 rounded-3xl p-5 space-y-4 hover:border-slate-600 transition shadow-sm">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-base font-black text-white">Phòng {c.room_number}</span>
-                        <p className="text-[11px] font-mono text-slate-400">Mã: {c.contract_code}</p>
-                      </div>
-                      <span className={`inline-block text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
-                        c.status === 'signed' || c.status === 'completed'
-                          ? 'bg-emerald-900/60 text-emerald-300 border border-emerald-500/30'
-                          : 'bg-amber-900/60 text-amber-300 border border-amber-500/30'
-                      }`}>
-                        {c.status === 'completed' ? 'Hoàn tất' : c.status === 'signed' ? 'Đã ký số' : 'Chờ khách ký'}
-                      </span>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: INVOICES & VIETQR */}
+          {activeTab === 'invoices' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {invoices.map(inv => (
+                <div key={inv.id} className="bg-[#111726] border border-white/10 rounded-3xl p-5 space-y-4 shadow-sm hover:border-white/20 transition">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="font-black text-lg text-white">Phòng {inv.room_number}</span>
+                      <p className="text-[11px] font-mono text-slate-400">Mã: {inv.invoice_code}</p>
                     </div>
+                    <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase ${
+                      inv.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+                    }`}>
+                      {inv.status === 'paid' ? 'Đã Thu' : 'Chưa Thu'}
+                    </span>
+                  </div>
 
-                    <div className="space-y-1.5 text-xs text-slate-300 bg-slate-900/50 p-3 rounded-2xl border border-slate-800">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Khách thuê:</span>
-                        <strong className="text-white">{c.tenant_name || 'Khách mới'}</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Số điện thoại:</span>
-                        <span>{c.tenant_phone || '---'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Giá thuê:</span>
-                        <strong className="text-indigo-400">{formatVND(c.monthly_rent)}/th</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Tiền cọc:</span>
-                        <strong className="text-amber-400">{formatVND(c.deposit_amount)}</strong>
-                      </div>
+                  <div className="space-y-1.5 text-xs text-slate-300 bg-[#151d30] p-3 rounded-2xl border border-white/5">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Tiền phòng:</span>
+                      <span className="font-semibold text-white">{formatVND(inv.room_fee)}</span>
                     </div>
-
-                    {c.tenant_signature && (
-                      <div className="bg-white/95 text-slate-900 p-2.5 rounded-xl border border-slate-700 text-center">
-                        <span className="text-[10px] font-bold text-slate-500 block mb-1">Chữ ký điện tử của khách:</span>
-                        <img src={c.tenant_signature} alt="Chữ ký" className="h-10 mx-auto" />
-                        <span className="text-[9px] text-slate-400 block mt-0.5">Ký lúc: {c.signed_at || 'Mới đây'}</span>
-                      </div>
-                    )}
-
-                    <div className="space-y-2 pt-1 border-t border-slate-700/60 text-xs font-bold">
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => handleCopySigningLink(c.token)}
-                          className="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 py-2 rounded-xl flex items-center justify-center gap-1.5 border border-indigo-500/30 transition"
-                        >
-                          <Copy className="w-3.5 h-3.5" /> Link Zalo
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            window.open(`?sign_token=${c.token}`, '_blank');
-                          }}
-                          className="bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-xl flex items-center justify-center gap-1.5 transition"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" /> Mở Ký
-                        </button>
-                      </div>
-
-                      {c.deposit_status !== 'paid' && (
-                        <button
-                          onClick={() => handleConfirmDeposit(c.id)}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl flex items-center justify-center gap-1.5 shadow transition"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Xác Nhận Đã Nhận Cọc
-                        </button>
-                      )}
+                    <div className="flex justify-between text-slate-400">
+                      <span>Điện ({inv.electric_usage} kWh):</span>
+                      <span className="font-semibold text-white">{formatVND(inv.electric_fee)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Nước ({inv.water_usage} m³):</span>
+                      <span className="font-semibold text-white">{formatVND(inv.water_fee)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Dịch vụ khác:</span>
+                      <span className="font-semibold text-white">{formatVND(inv.wifi_fee + inv.trash_fee + inv.parking_fee)}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-white/10 text-sm font-black text-indigo-400">
+                      <span>TỔNG CỘNG:</span>
+                      <span>{formatVND(inv.total_amount)}</span>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* TAB 7: SETTINGS */}
-        {activeTab === 'settings' && (
-          <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 max-w-2xl mx-auto space-y-6">
-            <div className="flex justify-between items-center">
+                  <div className="grid grid-cols-3 gap-2 pt-1 border-t border-white/10">
+                    <button
+                      onClick={() => setShowInvoiceModal(inv)}
+                      className="flex items-center justify-center gap-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 py-2 rounded-xl text-xs font-bold border border-indigo-500/30 transition"
+                    >
+                      <QrCode className="w-3.5 h-3.5" /> VietQR
+                    </button>
+                    <button
+                      onClick={() => setShowPosReceiptModal(inv)}
+                      className="flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl text-xs font-bold transition border border-white/5"
+                    >
+                      <Printer className="w-3.5 h-3.5" /> In POS
+                    </button>
+                    <button
+                      onClick={() => handleSendTelegram(inv.id)}
+                      className="flex items-center justify-center gap-1 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 py-2 rounded-xl text-xs font-bold border border-sky-500/30 transition"
+                    >
+                      <Send className="w-3.5 h-3.5" /> Nhắc Nợ
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TAB 6: E-CONTRACT DIGITAL SIGNING */}
+          {activeTab === 'contracts' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {contracts.length === 0 ? (
+                  <div className="col-span-full py-12 text-center text-slate-500 text-xs bg-[#111726] rounded-3xl border border-white/10">
+                    Chưa có hợp đồng điện tử nào. Hãy bấm "Tạo Hợp Đồng Ký Zalo" ở góc trên bên phải.
+                  </div>
+                ) : (
+                  contracts.map((c) => (
+                    <div key={c.id} className="bg-[#111726] border border-white/10 rounded-3xl p-5 space-y-4 hover:border-white/20 transition shadow-sm">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-base font-black text-white">Phòng {c.room_number}</span>
+                          <p className="text-[11px] font-mono text-slate-400">Mã: {c.contract_code}</p>
+                        </div>
+                        <span className={`inline-block text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                          c.status === 'signed' || c.status === 'completed'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}>
+                          {c.status === 'completed' ? 'Hoàn tất' : c.status === 'signed' ? 'Đã ký số' : 'Chờ khách ký'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-slate-300 bg-[#151d30] p-3 rounded-2xl border border-white/5">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Khách thuê:</span>
+                          <strong className="text-white">{c.tenant_name || 'Khách mới'}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Số điện thoại:</span>
+                          <span>{c.tenant_phone || '---'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Giá thuê:</span>
+                          <strong className="text-indigo-400">{formatVND(c.monthly_rent)}/tháng</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Tiền cọc:</span>
+                          <strong className="text-amber-400">{formatVND(c.deposit_amount)}</strong>
+                        </div>
+                      </div>
+
+                      {c.tenant_signature && (
+                        <div className="bg-white text-slate-900 p-2.5 rounded-xl border border-slate-700 text-center">
+                          <span className="text-[10px] font-bold text-slate-500 block mb-1">Chữ ký điện tử của khách:</span>
+                          <img src={c.tenant_signature} alt="Chữ ký" className="h-10 mx-auto" />
+                          <span className="text-[9px] text-slate-400 block mt-0.5">Ký lúc: {c.signed_at || 'Mới đây'}</span>
+                        </div>
+                      )}
+
+                      <div className="space-y-2 pt-1 border-t border-white/10 text-xs font-bold">
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => handleCopySigningLink(c.token)}
+                            className="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 py-2 rounded-xl flex items-center justify-center gap-1.5 border border-indigo-500/30 transition"
+                          >
+                            <Copy className="w-3.5 h-3.5" /> Link Zalo
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              window.open(`?sign_token=${c.token}`, '_blank');
+                            }}
+                            className="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl flex items-center justify-center gap-1.5 transition border border-white/10"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Mở Ký
+                          </button>
+                        </div>
+
+                        {c.deposit_status !== 'paid' && (
+                          <button
+                            onClick={() => handleConfirmDeposit(c.id)}
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl flex items-center justify-center gap-1.5 shadow transition"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Xác Nhận Đã Nhận Cọc
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7: SETTINGS */}
+          {activeTab === 'settings' && (
+            <div className="bg-[#111726] border border-white/10 rounded-3xl p-6 max-w-2xl space-y-6">
               <h3 className="text-base font-bold text-white">Cấu Hình Thông Tin Chủ Nhà & Cổng VietQR</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Tên Chủ Nhà / Đơn Vị Quản Lý</label>
+                  <input
+                    type="text"
+                    defaultValue={settings.landlord_name || 'Nguyễn Trung An'}
+                    className="w-full bg-[#151d30] border border-white/10 p-2.5 rounded-xl text-white outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Số Điện Thoại Chủ Nhà</label>
+                  <input
+                    type="text"
+                    defaultValue={settings.landlord_phone || '0988.123.456'}
+                    className="w-full bg-[#151d30] border border-white/10 p-2.5 rounded-xl text-white outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Số Tài Khoản Nhận Tiền VietQR</label>
+                  <input
+                    type="text"
+                    defaultValue="0388999888"
+                    className="w-full bg-[#151d30] border border-white/10 p-2.5 rounded-xl text-white font-mono outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Ngân Hàng (Napas 247)</label>
+                  <input
+                    type="text"
+                    defaultValue="MBBank (Quân Đội)"
+                    className="w-full bg-[#151d30] border border-white/10 p-2.5 rounded-xl text-white outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
               <button
-                onClick={handleSeedData}
-                className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-slate-600"
+                onClick={() => showToast('Đã lưu cấu hình hệ thống thành công!')}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition"
               >
-                <RotateCcw className="w-3 h-3 text-indigo-400" /> Nạp Dữ Liệu Mẫu
+                Lưu Thay Đổi
               </button>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Tên Chủ Nhà / Đơn Vị Quản Lý</label>
-                <input
-                  type="text"
-                  defaultValue={settings.landlord_name || 'Nguyễn Trung An'}
-                  className="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-white outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Số Điện Thoại Chủ Nhà</label>
-                <input
-                  type="text"
-                  defaultValue={settings.landlord_phone || '0988.123.456'}
-                  className="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-white outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Số Tài Khoản Nhận Tiền VietQR</label>
-                <input
-                  type="text"
-                  defaultValue="0388999888"
-                  className="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-white font-mono outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Ngân Hàng (Napas 247)</label>
-                <input
-                  type="text"
-                  defaultValue="MBBank (Quân Đội)"
-                  className="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-white outline-none"
-                />
-              </div>
-            </div>
+          )}
 
-            <button
-              onClick={() => showToast('Đã lưu cấu hình hệ thống thành công!')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition"
-            >
-              Lưu Thay Đổi
-            </button>
-          </div>
-        )}
-      </main>
+        </div>
+      </div>
 
       {/* ALL MODALS */}
       {showAddBuildingModal && (
@@ -1140,6 +1183,7 @@ export default function App() {
           formatVND={formatVND}
         />
       )}
+
     </div>
   );
 }

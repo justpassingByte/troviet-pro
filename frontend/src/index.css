@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-main: #090d16;
+  --bg-card: #111726;
+  --bg-card-hover: #162035;
+  --bg-input: #151d30;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: #4f46e5;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-glow: rgba(79, 70, 229, 0.3);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 @layer utilities {
   .pos-receipt {
     width: 80mm;
@@ -25,5 +66,7 @@
     left: 0;
     top: 0;
     width: 100%;
+    color: black !important;
+    background: white !important;
   }
 }
