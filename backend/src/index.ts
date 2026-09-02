@@ -556,9 +556,7 @@ if (fs.existsSync(frontendDist)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`🚀 TroViet Pro Backend API running on http://localhost:${PORT}`);
-});
+
 
 async function startServer() {
   await initDB();

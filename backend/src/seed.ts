@@ -17,7 +17,7 @@ export async function runSeed() {
 
   console.log('🏢 Creating Building: Chung Cư Mini An Cư Pro - Cầu Giấy, Hà Nội...');
   const insertBuilding = db.prepare(`
-    INSERT INTO buildings (name, address, total_floors, bank_id, bank_account, bank_owner, default_electric_rate, default_water_rate)
+    INSERT OR REPLACE INTO buildings (name, address, total_floors, bank_id, bank_account, bank_owner, default_electric_rate, default_water_rate)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
@@ -66,22 +66,22 @@ export async function runSeed() {
   ];
 
   const insertRoom = db.prepare(`
-    INSERT INTO rooms (building_id, room_number, floor, base_price, deposit, status, area, electricity_rate, water_rate, wifi_fee, trash_fee, parking_fee)
+    INSERT OR REPLACE INTO rooms (building_id, room_number, floor, base_price, deposit, status, area, electricity_rate, water_rate, wifi_fee, trash_fee, parking_fee)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const insertTenant = db.prepare(`
-    INSERT INTO tenants (room_id, full_name, phone, identity_card, hometown, license_plate, start_date, members_count, notes)
+    INSERT OR REPLACE INTO tenants (room_id, full_name, phone, identity_card, hometown, license_plate, start_date, members_count, notes)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const insertMeter = db.prepare(`
-    INSERT INTO meter_readings (room_id, month, year, old_electric, new_electric, old_water, new_water, electric_usage, water_usage)
+    INSERT OR REPLACE INTO meter_readings (room_id, month, year, old_electric, new_electric, old_water, new_water, electric_usage, water_usage)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const insertInvoice = db.prepare(`
-    INSERT INTO invoices (
+    INSERT OR REPLACE INTO invoices (
       invoice_code, room_id, tenant_id, month, year,
       room_fee, electric_usage, electric_rate, electric_fee,
       water_usage, water_rate, water_fee, wifi_fee, trash_fee, parking_fee, other_fee,
