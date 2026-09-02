@@ -18,13 +18,17 @@ import {
   PenTool,
   Copy,
   ExternalLink,
-  Flame
+  Flame,
+  RotateCcw
 } from 'lucide-react';
 import { SignaturePad } from './SignaturePad';
 import { MeterRow } from './MeterRow';
 import { InvoiceModal } from './InvoiceModal';
 import { PosReceiptModal } from './PosReceiptModal';
 import { CreateContractModal } from './CreateContractModal';
+import { AddBuildingModal } from './AddBuildingModal';
+import { AddRoomModal } from './AddRoomModal';
+import { AddTenantModal } from './AddTenantModal';
 
 const API_BASE = '/api';
 
@@ -53,6 +57,8 @@ interface Stats {
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'rooms' | 'tenants' | 'meters' | 'invoices' | 'contracts' | 'settings'>('dashboard');
   const [stats, setStats] = useState<Stats | null>(null);
+  const [buildings, setBuildings] = useState<any[]>([]);
+  const [selectedBuildingId, setSelectedBuildingId] = useState<number>(1);
   const [rooms, setRooms] = useState<any[]>([]);
   const [tenants, setTenants] = useState<any[]>([]);
   const [meters, setMeters] = useState<any[]>([]);
@@ -60,7 +66,7 @@ export default function App() {
   const [contracts, setContracts] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>({});
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear] = useState<number>(new Date().getFullYear());
 
   // Public Tenant E-Sign Mode
   const [publicSignToken, setPublicSignToken] = useState<string | null>(null);
@@ -68,6 +74,9 @@ export default function App() {
   const [publicSignSuccess, setPublicSignSuccess] = useState<any>(null);
 
   // Modals state
+  const [showAddBuildingModal, setShowAddBuildingModal] = useState(false);
+  const [showAddRoomModal, setShowAddRoomModal] = useState(false);
+  const [showAddTenantModal, setShowAddTenantModal] = useState(false);
   const [showCreateContractModal, setShowCreateContractModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState<any>(null);
   const [showPosReceiptModal, setShowPosReceiptModal] = useState<any>(null);
@@ -103,8 +112,9 @@ export default function App() {
 
   const fetchAllData = async () => {
     try {
-      const [resStats, resRooms, resTenants, resMeters, resInvoices, resContracts, resSettings] = await Promise.all([
+      const results = await Promise.allSettled([
         fetch(`${API_BASE}/dashboard/stats?month=${selectedMonth}&year=${selectedYear}`).then(r => r.json()),
+        fetch(`${API_BASE}/buildings`).then(r => r.json()),
         fetch(`${API_BASE}/rooms`).then(r => r.json()),
         fetch(`${API_BASE}/tenants`).then(r => r.json()),
         fetch(`${API_BASE}/meters?month=${selectedMonth}&year=${selectedYear}`).then(r => r.json()),
@@ -113,13 +123,19 @@ export default function App() {
         fetch(`${API_BASE}/settings`).then(r => r.json())
       ]);
 
-      setStats(resStats);
-      setRooms(Array.isArray(resRooms) ? resRooms : []);
-      setTenants(Array.isArray(resTenants) ? resTenants : []);
-      setMeters(Array.isArray(resMeters) ? resMeters : []);
-      setInvoices(Array.isArray(resInvoices) ? resInvoices : []);
-      setContracts(Array.isArray(resContracts) ? resContracts : []);
-      setSettings(resSettings || {});
+      if (results[0].status === 'fulfilled') setStats(results[0].value);
+      if (results[1].status === 'fulfilled' && Array.isArray(results[1].value)) {
+        setBuildings(results[1].value);
+        if (results[1].value.length > 0 && !selectedBuildingId) {
+          setSelectedBuildingId(results[1].value[0].id);
+        }
+      }
+      if (results[2].status === 'fulfilled' && Array.isArray(results[2].value)) setRooms(results[2].value);
+      if (results[3].status === 'fulfilled' && Array.isArray(results[3].value)) setTenants(results[3].value);
+      if (results[4].status === 'fulfilled' && Array.isArray(results[4].value)) setMeters(results[4].value);
+      if (results[5].status === 'fulfilled' && Array.isArray(results[5].value)) setInvoices(results[5].value);
+      if (results[6].status === 'fulfilled' && Array.isArray(results[6].value)) setContracts(results[6].value);
+      if (results[7].status === 'fulfilled') setSettings(results[7].value || {});
     } catch (err) {
       console.error('Error fetching data:', err);
     }
@@ -131,6 +147,114 @@ export default function App() {
 
   const formatVND = (num: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
+  };
+
+  const handleSeedData = async () => {
+    if (!confirm('Bạn có chắc chắn muốn nạp lại bộ dữ liệu mẫu 12 phòng Chung cư mini An Cư Pro?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/seed`, { method: 'POST' });
+      const data = await res.json();
+      showToast(data.message || 'Đã nạp dữ liệu mẫu thành công!');
+      fetchAllData();
+    } catch {
+      showToast('Lỗi khi nạp dữ liệu mẫu.');
+    }
+  };
+
+  const handleAddBuildingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      const payload = {
+        name: formData.get('name'),
+        address: formData.get('address'),
+        total_floors: Number(formData.get('total_floors')),
+        bank_id: formData.get('bank_id'),
+        bank_account: formData.get('bank_account'),
+        bank_owner: formData.get('bank_owner'),
+        default_electric_rate: Number(formData.get('default_electric_rate')),
+        default_water_rate: Number(formData.get('default_water_rate'))
+      };
+      const res = await fetch(`${API_BASE}/buildings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast('Đã thêm Tòa nhà / Dãy trọ mới thành công!');
+        setShowAddBuildingModal(false);
+        fetchAllData();
+      } else {
+        showToast('Không thể thêm tòa nhà.');
+      }
+    } catch {
+      showToast('Lỗi khi thêm tòa nhà.');
+    }
+  };
+
+  const handleAddRoomSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      const payload = {
+        building_id: Number(formData.get('building_id')),
+        room_number: formData.get('room_number'),
+        floor: Number(formData.get('floor')),
+        area: Number(formData.get('area')),
+        base_price: Number(formData.get('base_price')),
+        deposit: Number(formData.get('deposit')),
+        wifi_fee: Number(formData.get('wifi_fee')),
+        trash_fee: Number(formData.get('trash_fee')),
+        parking_fee: Number(formData.get('parking_fee')),
+        status: formData.get('status')
+      };
+      const res = await fetch(`${API_BASE}/rooms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast('Đã thêm Phòng trọ mới thành công!');
+        setShowAddRoomModal(false);
+        fetchAllData();
+      } else {
+        showToast('Không thể thêm phòng trọ.');
+      }
+    } catch {
+      showToast('Lỗi khi thêm phòng.');
+    }
+  };
+
+  const handleAddTenantSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      const payload = {
+        room_id: Number(formData.get('room_id')),
+        full_name: formData.get('full_name'),
+        phone: formData.get('phone'),
+        identity_card: formData.get('identity_card'),
+        hometown: formData.get('hometown'),
+        license_plate: formData.get('license_plate'),
+        members_count: Number(formData.get('members_count')),
+        start_date: formData.get('start_date'),
+        notes: formData.get('notes')
+      };
+      const res = await fetch(`${API_BASE}/tenants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast('Đã thêm Khách thuê & Nhận phòng thành công!');
+        setShowAddTenantModal(false);
+        fetchAllData();
+      } else {
+        showToast('Không thể thêm khách thuê.');
+      }
+    } catch {
+      showToast('Lỗi khi thêm khách thuê.');
+    }
   };
 
   const handleSaveMeter = async (roomId: number, oldE: number, newE: number, oldW: number, newW: number) => {
@@ -152,7 +276,7 @@ export default function App() {
         showToast('Đã lưu chỉ số điện nước thành công!');
         fetchAllData();
       }
-    } catch (err) {
+    } catch {
       showToast('Lỗi khi lưu chỉ số.');
     }
   };
@@ -170,7 +294,7 @@ export default function App() {
         setActiveTab('invoices');
         fetchAllData();
       }
-    } catch (err) {
+    } catch {
       showToast('Lỗi khi sinh hóa đơn.');
     }
   };
@@ -187,7 +311,7 @@ export default function App() {
         setShowInvoiceModal(null);
         fetchAllData();
       }
-    } catch (err) {
+    } catch {
       showToast('Lỗi khi cập nhật thanh toán.');
     }
   };
@@ -205,16 +329,14 @@ export default function App() {
       } else {
         showToast(data.message || 'Chưa cấu hình Telegram Bot.');
       }
-    } catch (err) {
+    } catch {
       showToast('Lỗi khi gửi thông báo.');
     }
   };
 
   const handleCreateContractSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-
+    const formData = new FormData(e.currentTarget);
     try {
       const payload = {
         room_id: Number(formData.get('room_id')),
@@ -243,7 +365,7 @@ export default function App() {
       } else {
         showToast('Không thể tạo hợp đồng.');
       }
-    } catch (err) {
+    } catch {
       showToast('Lỗi khi tạo hợp đồng.');
     }
   };
@@ -287,14 +409,12 @@ export default function App() {
       } else {
         showToast('Không thể hoàn tất ký hợp đồng.');
       }
-    } catch (err) {
+    } catch {
       showToast('Lỗi khi gửi chữ ký.');
     }
   };
 
-  // -------------------------------------------------------------
   // PUBLIC TENANT SIGNING VIEW
-  // -------------------------------------------------------------
   if (publicSignToken && publicContractData) {
     const { contract, landlord } = publicContractData;
     return (
@@ -399,9 +519,7 @@ export default function App() {
     );
   }
 
-  // -------------------------------------------------------------
-  // MAIN LANDLORD DASHBOARD
-  // -------------------------------------------------------------
+  // MAIN DASHBOARD VIEW
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
       {toastMessage && (
@@ -412,7 +530,7 @@ export default function App() {
       )}
 
       <header className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-600/30">
               TV
@@ -486,16 +604,35 @@ export default function App() {
           </nav>
 
           <div className="flex items-center gap-2">
+            {buildings.length > 0 && (
+              <select
+                value={selectedBuildingId}
+                onChange={(e) => setSelectedBuildingId(Number(e.target.value))}
+                className="bg-slate-800 border border-slate-700 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 outline-none max-w-[150px] truncate"
+              >
+                {buildings.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            )}
+
+            <button
+              onClick={() => setShowAddBuildingModal(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white p-1.5 rounded-lg text-xs font-bold transition shadow"
+              title="Thêm Tòa Nhà / Dãy Trọ Mới"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
               className="bg-slate-800 border border-slate-700 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 outline-none"
             >
               {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                <option key={m} value={m}>Tháng {m}</option>
+                <option key={m} value={m}>Tháng {m}/{selectedYear}</option>
               ))}
             </select>
-            <span className="text-xs font-bold text-slate-400">{selectedYear}</span>
           </div>
         </div>
       </header>
@@ -589,6 +726,19 @@ export default function App() {
         {/* TAB 2: ROOMS */}
         {activeTab === 'rooms' && (
           <div className="space-y-4">
+            <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
+              <div>
+                <h3 className="font-bold text-sm text-white">Quản Lý Danh Sách Phòng Trọ</h3>
+                <p className="text-xs text-slate-400">Xem và quản lý bảng giá, tiền cọc và diện tích từng phòng.</p>
+              </div>
+              <button
+                onClick={() => setShowAddRoomModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition"
+              >
+                <Plus className="w-4 h-4" /> + Thêm Phòng Mới
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {rooms.map(r => (
                 <div key={r.id} className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 space-y-3">
@@ -616,34 +766,49 @@ export default function App() {
 
         {/* TAB 3: TENANTS */}
         {activeTab === 'tenants' && (
-          <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase border-b border-slate-700">
-                  <tr>
-                    <th className="p-4">Phòng</th>
-                    <th className="p-4">Họ và tên</th>
-                    <th className="p-4">Số điện thoại</th>
-                    <th className="p-4">Số CCCD</th>
-                    <th className="p-4">Quê quán</th>
-                    <th className="p-4">Biển số xe</th>
-                    <th className="p-4">Ngày bắt đầu</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/60">
-                  {tenants.map(t => (
-                    <tr key={t.id} className="hover:bg-slate-700/30 transition">
-                      <td className="p-4 font-black text-indigo-400">{t.room_number}</td>
-                      <td className="p-4 font-bold text-white">{t.full_name}</td>
-                      <td className="p-4">{t.phone}</td>
-                      <td className="p-4 font-mono">{t.identity_card}</td>
-                      <td className="p-4">{t.hometown}</td>
-                      <td className="p-4 font-mono">{t.license_plate}</td>
-                      <td className="p-4">{t.start_date}</td>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
+              <div>
+                <h3 className="font-bold text-sm text-white">Danh Sách Khách Thuê Phòng</h3>
+                <p className="text-xs text-slate-400">Quản lý hồ sơ CCCD, số điện thoại Zalo và biển số xe.</p>
+              </div>
+              <button
+                onClick={() => setShowAddTenantModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition"
+              >
+                <Plus className="w-4 h-4" /> + Thêm Khách Thuê Mới
+              </button>
+            </div>
+
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase border-b border-slate-700">
+                    <tr>
+                      <th className="p-4">Phòng</th>
+                      <th className="p-4">Họ và tên</th>
+                      <th className="p-4">Số điện thoại</th>
+                      <th className="p-4">Số CCCD</th>
+                      <th className="p-4">Quê quán</th>
+                      <th className="p-4">Biển số xe</th>
+                      <th className="p-4">Ngày bắt đầu</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60">
+                    {tenants.map(t => (
+                      <tr key={t.id} className="hover:bg-slate-700/30 transition">
+                        <td className="p-4 font-black text-indigo-400">{t.room_number}</td>
+                        <td className="p-4 font-bold text-white">{t.full_name}</td>
+                        <td className="p-4">{t.phone}</td>
+                        <td className="p-4 font-mono">{t.identity_card}</td>
+                        <td className="p-4">{t.hometown}</td>
+                        <td className="p-4 font-mono">{t.license_plate}</td>
+                        <td className="p-4">{t.start_date}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -866,7 +1031,15 @@ export default function App() {
         {/* TAB 7: SETTINGS */}
         {activeTab === 'settings' && (
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 max-w-2xl mx-auto space-y-6">
-            <h3 className="text-base font-bold text-white">Cấu Hình Thông Tin Chủ Nhà & Cổng VietQR</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-bold text-white">Cấu Hình Thông Tin Chủ Nhà & Cổng VietQR</h3>
+              <button
+                onClick={handleSeedData}
+                className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-slate-600"
+              >
+                <RotateCcw className="w-3 h-3 text-indigo-400" /> Nạp Dữ Liệu Mẫu
+              </button>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
@@ -913,7 +1086,31 @@ export default function App() {
         )}
       </main>
 
-      {/* MODALS */}
+      {/* ALL MODALS */}
+      {showAddBuildingModal && (
+        <AddBuildingModal
+          onClose={() => setShowAddBuildingModal(false)}
+          onSubmit={handleAddBuildingSubmit}
+        />
+      )}
+
+      {showAddRoomModal && (
+        <AddRoomModal
+          buildings={buildings}
+          onClose={() => setShowAddRoomModal(false)}
+          onSubmit={handleAddRoomSubmit}
+        />
+      )}
+
+      {showAddTenantModal && (
+        <AddTenantModal
+          rooms={rooms}
+          onClose={() => setShowAddTenantModal(false)}
+          onSubmit={handleAddTenantSubmit}
+          formatVND={formatVND}
+        />
+      )}
+
       {showCreateContractModal && (
         <CreateContractModal
           rooms={rooms}

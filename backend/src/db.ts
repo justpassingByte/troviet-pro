@@ -2,36 +2,15 @@ import initSqlJs from 'sql.js';
 import path from 'path';
 import fs from 'fs';
 
-const dataDir = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+const projectRoot = path.resolve(process.cwd());
+const dataDir = process.env.DATA_DIR || (projectRoot.endsWith('backend') ? path.resolve(projectRoot, '..', 'data') : path.resolve(projectRoot, 'data'));
+
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
 const dbPath = path.join(dataDir, 'troviet.db');
 
-<<<<<<< HEAD
-// Initialize schema
-export function initDB() {
-  // Add columns if table already existed without new fields
-  try {
-    const tableInfo = db.prepare("PRAGMA table_info(contracts)").all() as any[];
-    const columnNames = tableInfo.map(c => c.name);
-    if (columnNames.length > 0) {
-      if (!columnNames.includes('token')) db.exec("ALTER TABLE contracts ADD COLUMN token TEXT");
-      if (!columnNames.includes('status')) db.exec("ALTER TABLE contracts ADD COLUMN status TEXT DEFAULT 'draft'");
-      if (!columnNames.includes('deposit_status')) db.exec("ALTER TABLE contracts ADD COLUMN deposit_status TEXT DEFAULT 'unpaid'");
-      if (!columnNames.includes('landlord_signature')) db.exec("ALTER TABLE contracts ADD COLUMN landlord_signature TEXT");
-      if (!columnNames.includes('tenant_signature')) db.exec("ALTER TABLE contracts ADD COLUMN tenant_signature TEXT");
-      if (!columnNames.includes('signed_at')) db.exec("ALTER TABLE contracts ADD COLUMN signed_at DATETIME");
-      if (!columnNames.includes('vietqr_url')) db.exec("ALTER TABLE contracts ADD COLUMN vietqr_url TEXT");
-      if (!columnNames.includes('pccc_agreed')) db.exec("ALTER TABLE contracts ADD COLUMN pccc_agreed INTEGER DEFAULT 1");
-      if (!columnNames.includes('rules_agreed')) db.exec("ALTER TABLE contracts ADD COLUMN rules_agreed INTEGER DEFAULT 1");
-    }
-  } catch (err) {
-    // Ignore migration error on first run
-  }
-
-=======
 class PureSqliteDB {
   private rawDb: any = null;
   private isReady = false;
@@ -60,9 +39,7 @@ class PureSqliteDB {
     }
   }
 
-  pragma(cmd: string) {
-    // No-op for WASM SQLite
-  }
+  pragma(cmd: string) {}
 
   transaction(fn: Function) {
     const self = this;
@@ -113,9 +90,15 @@ class PureSqliteDB {
         const p = params.length === 1 && Array.isArray(params[0]) ? params[0] : params;
         self.rawDb.run(sql, p);
         self.persist();
-        const lastId = self.rawDb.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0] || 0;
+        let lastId = 0;
+        try {
+          const res = self.rawDb.exec("SELECT last_insert_rowid()");
+          if (res && res.length > 0 && res[0].values && res[0].values.length > 0) {
+            lastId = Number(res[0].values[0][0]);
+          }
+        } catch {}
         return {
-          lastInsertRowid: Number(lastId),
+          lastInsertRowid: lastId,
           changes: 1
         };
       }
@@ -128,7 +111,6 @@ export const db = new PureSqliteDB();
 export async function initDB() {
   await db.init();
 
->>>>>>> main
   db.exec(`
     CREATE TABLE IF NOT EXISTS buildings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

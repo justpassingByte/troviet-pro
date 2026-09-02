@@ -589,13 +589,14 @@ app.post('/api/public/contract/:token/sign', async (req: Request, res: Response)
 
     // Generate VietQR for Deposit
     const depositAmt = contract.deposit_amount || contract.monthly_rent;
-    const vietqrUrl = generateVietQRUrl(
-      contract.bank_id,
-      contract.bank_account,
-      contract.bank_owner,
-      depositAmt,
-      `COC PHONG ${contract.room_number} HD ${contract.contract_code}`
-    );
+    const vietqrUrl = generateVietQRUrl({
+      bankId: contract.bank_id || 'MBBank',
+      accountNo: contract.bank_account || '0388999888',
+      accountName: contract.bank_owner || 'NGUYEN TRUNG AN',
+      amount: depositAmt,
+      description: `COC PHONG ${contract.room_number} HD ${contract.contract_code}`,
+      template: 'compact2'
+    });
 
     // Update Contract state to signed
     db.prepare(`
@@ -618,7 +619,7 @@ app.post('/api/public/contract/:token/sign', async (req: Request, res: Response)
           `🏠 Phòng: *P.${contract.room_number}*\n` +
           `👤 Khách thuê: *${tenant_name || contract.full_name}*\n` +
           `💵 Tiền cọc giữ phòng: *${depositAmt.toLocaleString('vi-VN')} đ*\n` +
-          `📜 Mã HĐ: `${contract.contract_code}`\n` +
+          `📜 Mã HĐ: ${contract.contract_code}\n` +
           `⚡ Trạng thái: Đã ký số thành công, đang chờ khách quét mã VietQR nộp cọc.`;
         fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
           method: 'POST',
@@ -795,28 +796,3 @@ if (fs.existsSync(frontendDist)) {
     res.sendFile(path.join(frontendDist, 'index.html'));
   });
 }
-
-<<<<<<< HEAD
-app.listen(PORT, () => {
-  console.log(`🚀 TroViet Pro Backend API running on http://localhost:${PORT}`);
-});
-=======
-
-
-async function startServer() {
-  await initDB();
-
-  // Auto-seed if database is empty
-  const roomCount = (db.prepare('SELECT count(*) as count FROM rooms').get() as { count: number })?.count || 0;
-  if (roomCount === 0) {
-    console.log('⚡ Empty database detected. Auto-seeding initial demo data...');
-    await runSeed();
-  }
-
-  app.listen(PORT, () => {
-    console.log(`🚀 TroViet Pro Backend running at http://localhost:${PORT}`);
-  });
-}
-
-startServer();
->>>>>>> main
