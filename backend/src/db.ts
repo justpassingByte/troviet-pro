@@ -9,6 +9,29 @@ if (!fs.existsSync(dataDir)) {
 
 const dbPath = path.join(dataDir, 'troviet.db');
 
+<<<<<<< HEAD
+// Initialize schema
+export function initDB() {
+  // Add columns if table already existed without new fields
+  try {
+    const tableInfo = db.prepare("PRAGMA table_info(contracts)").all() as any[];
+    const columnNames = tableInfo.map(c => c.name);
+    if (columnNames.length > 0) {
+      if (!columnNames.includes('token')) db.exec("ALTER TABLE contracts ADD COLUMN token TEXT");
+      if (!columnNames.includes('status')) db.exec("ALTER TABLE contracts ADD COLUMN status TEXT DEFAULT 'draft'");
+      if (!columnNames.includes('deposit_status')) db.exec("ALTER TABLE contracts ADD COLUMN deposit_status TEXT DEFAULT 'unpaid'");
+      if (!columnNames.includes('landlord_signature')) db.exec("ALTER TABLE contracts ADD COLUMN landlord_signature TEXT");
+      if (!columnNames.includes('tenant_signature')) db.exec("ALTER TABLE contracts ADD COLUMN tenant_signature TEXT");
+      if (!columnNames.includes('signed_at')) db.exec("ALTER TABLE contracts ADD COLUMN signed_at DATETIME");
+      if (!columnNames.includes('vietqr_url')) db.exec("ALTER TABLE contracts ADD COLUMN vietqr_url TEXT");
+      if (!columnNames.includes('pccc_agreed')) db.exec("ALTER TABLE contracts ADD COLUMN pccc_agreed INTEGER DEFAULT 1");
+      if (!columnNames.includes('rules_agreed')) db.exec("ALTER TABLE contracts ADD COLUMN rules_agreed INTEGER DEFAULT 1");
+    }
+  } catch (err) {
+    // Ignore migration error on first run
+  }
+
+=======
 class PureSqliteDB {
   private rawDb: any = null;
   private isReady = false;
@@ -105,6 +128,7 @@ export const db = new PureSqliteDB();
 export async function initDB() {
   await db.init();
 
+>>>>>>> main
   db.exec(`
     CREATE TABLE IF NOT EXISTS buildings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
