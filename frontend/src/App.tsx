@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Home,
   Building2,
   Users,
   Zap,
-  Droplets,
   Receipt,
   FileText,
   Settings,
@@ -14,21 +13,13 @@ import {
   Send,
   CheckCircle2,
   AlertCircle,
-  Clock,
   RotateCcw,
   Search,
-  Phone,
-  CreditCard,
   ChevronRight,
-  ShieldCheck,
-  TrendingUp,
   DollarSign,
-  Download,
   PenTool,
   Copy,
-  Check,
   ExternalLink,
-  ShieldAlert,
   Flame
 } from 'lucide-react';
 import { SignaturePad } from './SignaturePad';
@@ -66,7 +57,6 @@ export default function App() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>({});
-  const [loading, setLoading] = useState<boolean>(true);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear] = useState<number>(new Date().getFullYear());
 
@@ -80,14 +70,8 @@ export default function App() {
   const [showAddTenantModal, setShowAddTenantModal] = useState(false);
   const [showCreateContractModal, setShowCreateContractModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState<any>(null);
-  const [showContractModal, setShowContractModal] = useState<any>(null);
   const [showPosReceiptModal, setShowPosReceiptModal] = useState<any>(null);
-  const [showSignModalForContract, setShowSignModalForContract] = useState<any>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Filter states
-  const [roomFilterStatus, setRoomFilterStatus] = useState<string>('all');
-  const [tenantSearchQuery, setTenantSearchQuery] = useState<string>('');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -119,7 +103,6 @@ export default function App() {
   };
 
   const fetchAllData = async () => {
-    setLoading(true);
     try {
       const [resStats, resRooms, resTenants, resMeters, resInvoices, resContracts, resSettings] = await Promise.all([
         fetch(`${API_BASE}/dashboard/stats?month=${selectedMonth}&year=${selectedYear}`).then(r => r.json()),
@@ -132,17 +115,14 @@ export default function App() {
       ]);
 
       setStats(resStats);
-      setRooms(resRooms);
-      setTenants(resTenants);
-      setMeters(resMeters);
-      setInvoices(resInvoices);
+      setRooms(Array.isArray(resRooms) ? resRooms : []);
+      setTenants(Array.isArray(resTenants) ? resTenants : []);
+      setMeters(Array.isArray(resMeters) ? resMeters : []);
+      setInvoices(Array.isArray(resInvoices) ? resInvoices : []);
       setContracts(Array.isArray(resContracts) ? resContracts : []);
-      setSettings(resSettings);
+      setSettings(resSettings || {});
     } catch (err) {
       console.error('Error fetching data:', err);
-      showToast('Lỗi khi tải dữ liệu từ máy chủ.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -259,7 +239,6 @@ export default function App() {
       });
 
       if (res.ok) {
-        const data = await res.json();
         showToast('Đã tạo Hợp đồng điện tử thành công!');
         setShowCreateContractModal(false);
         fetchAllData();
@@ -629,11 +608,176 @@ export default function App() {
           </div>
         )}
 
+        {/* TAB 2: ROOMS */}
+        {activeTab === 'rooms' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {rooms.map(r => (
+                <div key={r.id} className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-black text-lg text-white">Phòng {r.room_number}</span>
+                      <p className="text-xs text-slate-400">Tầng {r.floor} • {r.area} m²</p>
+                    </div>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase ${
+                      r.status === 'occupied' ? 'bg-indigo-900/60 text-indigo-300' : 'bg-emerald-900/60 text-emerald-300'
+                    }`}>
+                      {r.status === 'occupied' ? 'Đang Thuê' : 'Trống'}
+                    </span>
+                  </div>
+                  <div className="text-xs space-y-1 text-slate-300">
+                    <p>Giá thuê: <strong className="text-indigo-400">{formatVND(r.base_price)}/th</strong></p>
+                    <p>Tiền cọc: <strong>{formatVND(r.deposit)}</strong></p>
+                    <p>Khách thuê: <strong>{r.tenant_name || 'Chưa có'}</strong></p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: TENANTS */}
+        {activeTab === 'tenants' && (
+          <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase border-b border-slate-700">
+                  <tr>
+                    <th className="p-4">Phòng</th>
+                    <th className="p-4">Họ và tên</th>
+                    <th className="p-4">Số điện thoại</th>
+                    <th className="p-4">Số CCCD</th>
+                    <th className="p-4">Quê quán</th>
+                    <th className="p-4">Biển số xe</th>
+                    <th className="p-4">Ngày bắt đầu</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/60">
+                  {tenants.map(t => (
+                    <tr key={t.id} className="hover:bg-slate-700/30 transition">
+                      <td className="p-4 font-black text-indigo-400">{t.room_number}</td>
+                      <td className="p-4 font-bold text-white">{t.full_name}</td>
+                      <td className="p-4">{t.phone}</td>
+                      <td className="p-4 font-mono">{t.identity_card}</td>
+                      <td className="p-4">{t.hometown}</td>
+                      <td className="p-4 font-mono">{t.license_plate}</td>
+                      <td className="p-4">{t.start_date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: METERS */}
+        {activeTab === 'meters' && (
+          <div className="space-y-4">
+            <div className="bg-amber-950/30 border border-amber-500/40 p-4 rounded-2xl flex justify-between items-center text-xs text-amber-200">
+              <span>Chốt chỉ số Điện (kWh) và Nước (m³) tháng <strong>{selectedMonth}/{selectedYear}</strong>. Nhập số mới, hệ thống tự tính số tiêu thụ.</span>
+              <button
+                onClick={handleGenerateInvoices}
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition"
+              >
+                ⚡ Đồng bộ sang Hóa đơn VietQR
+              </button>
+            </div>
+
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase border-b border-slate-700">
+                    <tr>
+                      <th className="p-4">Phòng</th>
+                      <th className="p-4">Khách thuê</th>
+                      <th className="p-4 text-center">Điện Cũ</th>
+                      <th className="p-4 text-center">Điện Mới</th>
+                      <th className="p-4 text-center">Tiêu Thụ (kWh)</th>
+                      <th className="p-4 text-center">Nước Cũ</th>
+                      <th className="p-4 text-center">Nước Mới</th>
+                      <th className="p-4 text-center">Tiêu Thụ (m³)</th>
+                      <th className="p-4 text-right">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60">
+                    {meters.map(m => (
+                      <MeterRow key={m.room_id} item={m} onSave={handleSaveMeter} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: INVOICES & VIETQR */}
+        {activeTab === 'invoices' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {invoices.map(inv => (
+              <div key={inv.id} className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-4 shadow-sm hover:border-slate-600 transition">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="font-black text-lg text-white">Phòng {inv.room_number}</span>
+                    <p className="text-[11px] font-mono text-slate-400">Mã: {inv.invoice_code}</p>
+                  </div>
+                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase ${
+                    inv.status === 'paid' ? 'bg-emerald-900/60 text-emerald-300' : 'bg-rose-900/60 text-rose-300'
+                  }`}>
+                    {inv.status === 'paid' ? 'Đã Thu' : 'Chưa Thu'}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-slate-300 bg-slate-900/50 p-3 rounded-2xl border border-slate-800">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Tiền phòng:</span>
+                    <span className="font-semibold text-white">{formatVND(inv.room_fee)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Điện ({inv.electric_usage} kWh):</span>
+                    <span className="font-semibold text-white">{formatVND(inv.electric_fee)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Nước ({inv.water_usage} m³):</span>
+                    <span className="font-semibold text-white">{formatVND(inv.water_fee)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Dịch vụ khác:</span>
+                    <span className="font-semibold text-white">{formatVND(inv.wifi_fee + inv.trash_fee + inv.parking_fee)}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-slate-700/60 text-sm font-black text-indigo-400">
+                    <span>TỔNG CỘNG:</span>
+                    <span>{formatVND(inv.total_amount)}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-700/60">
+                  <button
+                    onClick={() => setShowInvoiceModal(inv)}
+                    className="flex items-center justify-center gap-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 py-2 rounded-xl text-xs font-bold border border-indigo-500/30 transition"
+                  >
+                    <QrCode className="w-3.5 h-3.5" /> VietQR
+                  </button>
+                  <button
+                    onClick={() => setShowPosReceiptModal(inv)}
+                    className="flex items-center justify-center gap-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-xl text-xs font-bold transition"
+                  >
+                    <Printer className="w-3.5 h-3.5" /> In POS
+                  </button>
+                  <button
+                    onClick={() => handleSendTelegram(inv.id)}
+                    className="flex items-center justify-center gap-1 bg-sky-950/50 hover:bg-sky-900/60 text-sky-300 py-2 rounded-xl text-xs font-bold border border-sky-500/30 transition"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Nhắc Nợ
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* TAB 6: E-CONTRACT DIGITAL SIGNING & ADD-ON */}
         {activeTab === 'contracts' && (
           <div className="space-y-6">
-            
-            {/* Top Action Bar */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/80 border border-slate-700/80 p-5 rounded-3xl">
               <div>
                 <div className="flex items-center gap-2">
@@ -748,6 +892,55 @@ export default function App() {
           </div>
         )}
 
+        {/* TAB 7: SETTINGS */}
+        {activeTab === 'settings' && (
+          <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 max-w-2xl mx-auto space-y-6">
+            <h3 className="text-base font-bold text-white">Cấu Hình Thông Tin Chủ Nhà & Cổng VietQR</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Tên Chủ Nhà / Đơn Vị Quản Lý</label>
+                <input
+                  type="text"
+                  defaultValue={settings.landlord_name || 'Nguyễn Trung An'}
+                  className="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-white outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Số Điện Thoại Chủ Nhà</label>
+                <input
+                  type="text"
+                  defaultValue={settings.landlord_phone || '0988.123.456'}
+                  className="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-white outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Số Tài Khoản Nhận Tiền VietQR</label>
+                <input
+                  type="text"
+                  defaultValue="0388999888"
+                  className="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-white font-mono outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Ngân Hàng (Napas 247)</label>
+                <input
+                  type="text"
+                  defaultValue="MBBank (Quân Đội)"
+                  className="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-white outline-none"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => showToast('Đã lưu cấu hình hệ thống thành công!')}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition"
+            >
+              Lưu Thay Đổi
+            </button>
+          </div>
+        )}
+
       </main>
 
       {/* MODAL: TẠO HỢP ĐỒNG ĐIỆN TỬ MỚI */}
@@ -833,6 +1026,173 @@ export default function App() {
         </div>
       )}
 
+      {/* MODAL: VIETQR DETAIL */}
+      {showInvoiceModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+              <span className="font-bold text-sm text-white">Thanh Toán VietQR Phòng {showInvoiceModal.room_number}</span>
+              <button onClick={() => setShowInvoiceModal(null)} className="text-slate-400 hover:text-white font-bold">✕</button>
+            </div>
+
+            <div className="p-3 bg-white rounded-2xl shadow-sm">
+              <img
+                src={showInvoiceModal.vietqr_url}
+                alt="VietQR Pro"
+                className="w-full h-auto rounded-xl"
+              />
+            </div>
+
+            <div className="text-xs space-y-1">
+              <p className="text-slate-400">Số tiền thanh toán:</p>
+              <p className="text-xl font-black text-indigo-400">{formatVND(showInvoiceModal.total_amount)}</p>
+              <p className="text-[11px] font-mono text-slate-300 bg-slate-800 p-2 rounded-xl mt-1">
+                Nội dung: <strong>{showInvoiceModal.room_number} TIEN NHA T{showInvoiceModal.month}</strong>
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              {showInvoiceModal.status !== 'paid' && (
+                <button
+                  onClick={() => handlePayInvoice(showInvoiceModal.id, showInvoiceModal.total_amount)}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold shadow transition"
+                >
+                  ✓ Xác Nhận Đã Thu
+                </button>
+              )}
+              <button
+                onClick={() => setShowInvoiceModal(null)}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-bold transition"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: POS 80MM RECEIPT */}
+      {showPosReceiptModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-slate-900">
+            <div className="flex justify-between items-center pb-2 border-b no-print">
+              <span className="font-bold text-xs text-slate-800">Phiếu Thu POS 80mm</span>
+              <button onClick={() => setShowPosReceiptModal(null)} className="text-slate-400 font-bold">✕</button>
+            </div>
+
+            {/* Receipt Body */}
+            <div id="printable-area" className="pos-receipt mx-auto text-center text-xs font-mono text-slate-900 space-y-2 p-2 border border-dashed border-slate-300">
+              <p className="font-bold text-sm">CHUNG CƯ MINI AN CƯ PRO</p>
+              <p className="text-[10px]">165 Cầu Giấy, Hà Nội • ĐT: 0988.123.456</p>
+              <p className="font-bold text-xs pt-1 border-t border-dashed">PHIẾU THU TIỀN NHÀ</p>
+              <p className="text-[10px] text-slate-500">Tháng {showPosReceiptModal.month}/{showPosReceiptModal.year} - {showPosReceiptModal.room_number}</p>
+              
+              <div className="text-left text-[11px] space-y-1 pt-2 border-t border-dashed">
+                <div className="flex justify-between">
+                  <span>Tiền phòng:</span>
+                  <span>{formatVND(showPosReceiptModal.room_fee)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Điện ({showPosReceiptModal.electric_usage} kWh):</span>
+                  <span>{formatVND(showPosReceiptModal.electric_fee)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Nước ({showPosReceiptModal.water_usage} m³):</span>
+                  <span>{formatVND(showPosReceiptModal.water_fee)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Dịch vụ khác:</span>
+                  <span>{formatVND(showPosReceiptModal.wifi_fee + showPosReceiptModal.trash_fee + showPosReceiptModal.parking_fee)}</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t font-bold text-xs">
+                  <span>TỔNG TIỀN:</span>
+                  <span>{formatVND(showPosReceiptModal.total_amount)}</span>
+                </div>
+              </div>
+
+              <div className="pt-2 text-[10px] text-slate-500 italic">
+                Cảm ơn quý khách! Chúc quý khách an cư lạc nghiệp!
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 no-print">
+              <button
+                onClick={() => window.print()}
+                className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold shadow"
+              >
+                In Phiếu (80mm)
+              </button>
+              <button
+                onClick={() => setShowPosReceiptModal(null)}
+                className="flex-1 bg-slate-100 text-slate-700 py-2 rounded-lg text-xs font-bold"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
+  );
+}
+
+// Subcomponent for Meter Reading Row
+function MeterRow({ item, onSave }: { item: any; onSave: any }) {
+  const [oldE, setOldE] = useState(item.old_electric || 0);
+  const [newE, setNewE] = useState(item.new_electric || 0);
+  const [oldW, setOldW] = useState(item.old_water || 0);
+  const [newW, setNewW] = useState(item.new_water || 0);
+
+  const diffE = Math.max(0, newE - oldE);
+  const diffW = Math.max(0, newW - oldW);
+
+  return (
+    <tr className="hover:bg-slate-700/30 transition">
+      <td className="p-4 font-black text-indigo-400 text-sm">{item.room_number}</td>
+      <td className="p-4 font-semibold text-white">{item.tenant_name || 'Phòng trống'}</td>
+      <td className="p-4 text-center">
+        <input
+          type="number"
+          value={oldE}
+          onChange={(e) => setOldE(Number(e.target.value))}
+          className="w-16 p-1 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono text-white"
+        />
+      </td>
+      <td className="p-4 text-center">
+        <input
+          type="number"
+          value={newE}
+          onChange={(e) => setNewE(Number(e.target.value))}
+          className="w-16 p-1 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-amber-400"
+        />
+      </td>
+      <td className="p-4 text-center font-bold text-amber-400">{diffE} kWh</td>
+      <td className="p-4 text-center">
+        <input
+          type="number"
+          value={oldW}
+          onChange={(e) => setOldW(Number(e.target.value))}
+          className="w-16 p-1 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono text-white"
+        />
+      </td>
+      <td className="p-4 text-center">
+        <input
+          type="number"
+          value={newW}
+          onChange={(e) => setNewW(Number(e.target.value))}
+          className="w-16 p-1 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-sky-400"
+        />
+      </td>
+      <td className="p-4 text-center font-bold text-sky-400">{diffW} m³</td>
+      <td className="p-4 text-right">
+        <button
+          onClick={() => onSave(item.room_id, oldE, newE, oldW, newW)}
+          className="bg-indigo-600/20 hover:bg-indigo-600 hover:text-white text-indigo-300 px-3 py-1 rounded-md font-bold transition text-xs border border-indigo-500/30"
+        >
+          Lưu
+        </button>
+      </td>
+    </tr>
   );
 }

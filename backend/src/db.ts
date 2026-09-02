@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import initSqlJs from 'sql.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -8,9 +8,8 @@ if (!fs.existsSync(dataDir)) {
 }
 
 const dbPath = path.join(dataDir, 'troviet.db');
-export const db = new Database(dbPath);
-db.pragma('journal_mode = WAL');
 
+<<<<<<< HEAD
 // Initialize schema
 export function initDB() {
   // Add columns if table already existed without new fields
@@ -32,6 +31,104 @@ export function initDB() {
     // Ignore migration error on first run
   }
 
+=======
+class PureSqliteDB {
+  private rawDb: any = null;
+  private isReady = false;
+
+  async init() {
+    if (this.isReady) return;
+    const SQL = await initSqlJs();
+    if (fs.existsSync(dbPath)) {
+      const fileBuffer = fs.readFileSync(dbPath);
+      this.rawDb = new SQL.Database(fileBuffer);
+    } else {
+      this.rawDb = new SQL.Database();
+      this.persist();
+    }
+    this.isReady = true;
+  }
+
+  persist() {
+    if (!this.rawDb) return;
+    try {
+      const data = this.rawDb.export();
+      const buffer = Buffer.from(data);
+      fs.writeFileSync(dbPath, buffer);
+    } catch (err) {
+      console.error('Error persisting database to disk:', err);
+    }
+  }
+
+  pragma(cmd: string) {
+    // No-op for WASM SQLite
+  }
+
+  transaction(fn: Function) {
+    const self = this;
+    return function (...args: any[]) {
+      self.exec('BEGIN TRANSACTION');
+      try {
+        const result = fn(...args);
+        self.exec('COMMIT');
+        return result;
+      } catch (err) {
+        self.exec('ROLLBACK');
+        throw err;
+      }
+    };
+  }
+
+  exec(sql: string) {
+    this.rawDb.exec(sql);
+    this.persist();
+  }
+
+  prepare(sql: string) {
+    const self = this;
+    return {
+      all(...params: any[]) {
+        const stmt = self.rawDb.prepare(sql);
+        const p = params.length === 1 && Array.isArray(params[0]) ? params[0] : params;
+        stmt.bind(p);
+        const results: any[] = [];
+        while (stmt.step()) {
+          results.push(stmt.getAsObject());
+        }
+        stmt.free();
+        return results;
+      },
+      get(...params: any[]) {
+        const stmt = self.rawDb.prepare(sql);
+        const p = params.length === 1 && Array.isArray(params[0]) ? params[0] : params;
+        stmt.bind(p);
+        let result: any = null;
+        if (stmt.step()) {
+          result = stmt.getAsObject();
+        }
+        stmt.free();
+        return result;
+      },
+      run(...params: any[]) {
+        const p = params.length === 1 && Array.isArray(params[0]) ? params[0] : params;
+        self.rawDb.run(sql, p);
+        self.persist();
+        const lastId = self.rawDb.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0] || 0;
+        return {
+          lastInsertRowid: Number(lastId),
+          changes: 1
+        };
+      }
+    };
+  }
+}
+
+export const db = new PureSqliteDB();
+
+export async function initDB() {
+  await db.init();
+
+>>>>>>> main
   db.exec(`
     CREATE TABLE IF NOT EXISTS buildings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

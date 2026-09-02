@@ -7,20 +7,11 @@ import { db, initDB } from './db.js';
 import { generateVietQRUrl } from './vietqr.js';
 import { runSeed } from './seed.js';
 
-initDB();
-
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
-
-// Auto-seed if database is empty
-const roomCount = (db.prepare('SELECT count(*) as count FROM rooms').get() as { count: number }).count;
-if (roomCount === 0) {
-  console.log('⚡ Empty database detected. Auto-seeding initial demo data...');
-  runSeed();
-}
 
 // -------------------------------------------------------------
 // 1. DASHBOARD & STATS API
@@ -782,7 +773,7 @@ app.get('/api/settings', (req: Request, res: Response) => {
 app.post('/api/settings', (req: Request, res: Response) => {
   const settings = req.body;
   const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
-  const updateMany = db.transaction((entries) => {
+  const updateMany = db.transaction((entries: Record<string, any>) => {
     for (const [k, v] of Object.entries(entries)) {
       stmt.run(k, String(v));
     }
@@ -805,6 +796,27 @@ if (fs.existsSync(frontendDist)) {
   });
 }
 
+<<<<<<< HEAD
 app.listen(PORT, () => {
   console.log(`🚀 TroViet Pro Backend API running on http://localhost:${PORT}`);
 });
+=======
+
+
+async function startServer() {
+  await initDB();
+
+  // Auto-seed if database is empty
+  const roomCount = (db.prepare('SELECT count(*) as count FROM rooms').get() as { count: number })?.count || 0;
+  if (roomCount === 0) {
+    console.log('⚡ Empty database detected. Auto-seeding initial demo data...');
+    await runSeed();
+  }
+
+  app.listen(PORT, () => {
+    console.log(`🚀 TroViet Pro Backend running at http://localhost:${PORT}`);
+  });
+}
+
+startServer();
+>>>>>>> main
